@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  computenode:
+    build: ./computenode
+    command: /cm/bin/cmdaemon
+    networks:
+      - cm
+    volumes:
+      - ./drive/home:/home
+      - ./cm:/cm
+    depends_on:
+      - headnode
+    environment:
+      HEADNODE: headnode
+  headnode:
+    build: ./headnode
+    command: /cm/bin/cmdaemon
+    networks:
+      - cm
+    volumes:
+      - ./drive/home:/home
+      - ./cm:/cm
+
+networks:
+  cm:
+    name: cluster_manager
