@@ -12,7 +12,8 @@ services:
     depends_on:
       - headnode
     environment:
-      HEADNODE: headnode
+      CM_SERVER_TYPE: node
+      CM_MASTER_ADDR: headnode
   headnode:
     build: ./headnode
     command: /cm/bin/cmdaemon
@@ -21,6 +22,8 @@ services:
     volumes:
       - ./drive/home:/home
       - ./cm:/cm
+    environment:
+      CM_SERVER_TYPE: head
 
 networks:
   cm:
