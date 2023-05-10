@@ -1,1 +1,3 @@
 zmq
+pymongo
+mongoengine

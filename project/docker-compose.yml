@@ -24,6 +24,15 @@ services:
       - ./cm:/cm
     environment:
       CM_SERVER_TYPE: head
+      CM_DATABASE_ADDR: database
+      CM_DATABASE_PORT: 27017
+    depends_on:
+      - database
+
+  database:
+    image: mongo:5.0.5
+    networks:
+      - cm
 
 networks:
   cm:

@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 ENV      = os.environ
 
@@ -24,6 +25,8 @@ class Traits:
             self.master_addr = '0.0.0.0'
         else:
             self.master_addr = ENV["CM_MASTER_ADDR"]
+        self.node_id = str(uuid.uuid4())
+        self.resources = []
 
     def is_head(self):
         return (self.server_type == SERVER_TYPE_HEAD)
