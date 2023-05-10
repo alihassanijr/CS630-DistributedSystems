@@ -1,0 +1,6 @@
+
+register_retries: 10
+register_retry_wait: 5
+
+req_port: 5001
+rep_port: 5002

@@ -3,7 +3,9 @@
 import os
 
 from src.mw.socket import RequestSocket, ReplySocket
+from src.response import Response
 from src.node import Node
+from src.configuration import load_configuration
 
 import logging
 from time import sleep
@@ -13,38 +15,66 @@ _logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     node = Node()
+    config = load_configuration()
+    _logger.info(config)
 
     if node.is_head():
         from src.master.handler import handle_message
         # This is a head node
         _logger.info("Starting head node service.")
-        svc = ReplySocket(hostname=node.master_addr, port=node.master_port)
-        svc.open()
+        sock = ReplySocket(hostname="0.0.0.0", port=config.req_port)
+        sock.open()
 
         while True:
             _logger.info("Waiting for message")
-            message = svc.receive()
+            message = sock.receive()
             _logger.info(f"Head received message.")
             response = handle_message(node, message)
             _logger.info(f"Head handled message.")
-            svc.send(response)
+            sock.send(response)
             _logger.info("Sent response.")
 
+        sock.close()
+
     elif node.is_compute():
-        sleep(5)
         # This is a compute node
         _logger.info("Starting child node service.")
-        svc = RequestSocket(hostname="127.0.0.1", port=5001)
-        svc.open(node.master_addr, node.master_port)
+        head_sock = RequestSocket(hostname="0.0.0.0", port=config.rep_port)
+        head_sock.open(node.master_addr, config.req_port)
 
-        sleep(5)
+        registered = False
+        for _ in range(config.register_retries):
+            _logger.info("Registering node")
+            head_sock.send(node.get_register_message())
+            _logger.info("Waiting for response")
+            message = head_sock.receive()
+            _logger.info(f"Child received message: {message}")
+            if message.response == Response.RegisterationSuccessful:
+                _logger.info(f"Registered with head node successfully. Proceeding.")
+                registered = True
+                break
+            else:
+                _logger.info(f"Node registration failed. Retrying...")
+                sleep(config.register_retry_wait)
 
-        _logger.info("Registering node")
-        svc.send(node.get_register_message())
-        _logger.info("Waiting for response")
-        message = svc.receive()
-        _logger.info(f"Child received message: {message}")
+        if not registered:
+            raise RuntimeError(f"Failed to register with head node after {config.register_retries} attempts. Quitting.")
 
-        sleep(1200)
+        from src.compute.handler import handle_message
+        sock = ReplySocket(hostname="0.0.0.0", port=config.req_port)
+        sock.open()
+
+        while True:
+            _logger.info("Waiting for message")
+            message = sock.receive()
+            _logger.info(f"Received message.")
+            response = handle_message(node, message, head_sock)
+            _logger.info(f"Handled message.")
+            sock.send(response)
+            _logger.info("Sent response.")
+
+        head_sock.close()
+        sock.close()
+
     else:
         raise NotImplementedError(f"Server type not recognized. This should not have happened!")

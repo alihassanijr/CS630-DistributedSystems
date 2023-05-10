@@ -9,7 +9,7 @@ clean:
 	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
 
 run:
-	docker compose up --build
+	docker compose up --scale computenode=4 --build
 
 stop:
 	docker compose down

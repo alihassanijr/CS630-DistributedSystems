@@ -14,8 +14,9 @@ def register_node(
     node: Node
 ):
     try:
-        result = master_node.config.register_node(node)
+        result = master_node.storage.register_node(node)
         if result:
+            _logger.info(f"Node {node.node_id} of type {node.node_type} registered.")
             return Message(
                 node_id=master_node.node_id,
                 action=Action.NoAction,

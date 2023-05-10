@@ -5,12 +5,12 @@ from .schemas import node_to_schema
 from ...node import Node as Node
 
 
-class Configuration:
-    def __init__(self, hostname, port, instance):
+class Storage:
+    def __init__(self, hostname, port, database_name):
         self.hostname  = hostname
         self.port      = port
-        self.instance  = instance
-        connect(host=f"mongodb://{self.hostname}:{self.port}/{self.instance}")
+        self.database_name  = database_name
+        connect(host=f"mongodb://{self.hostname}:{self.port}/{self.database_name}")
 
     def register_node(self, node: Node):
         try:
