@@ -5,6 +5,7 @@ from ..response import Response
 from ..message import Message
 from ..node import Node
 from .register import register_node
+from .fetch import fetch_nodes
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -24,6 +25,9 @@ def handle_message(master_node: Node, message: Any):
     if message.action == Action.RegisterNode:
         return node_register_handler(master_node=master_node, message=message)
 
+    elif message.action == Action.FetchNodes:
+        return fetch_all_handler(master_node=master_node, message=message)
+
     _logger.info(f"Message from node {message.node_id} not handled; unexpected action: {message.action}.")
     return Message(
         node_id=master_node.node_id,
@@ -40,4 +44,8 @@ def node_register_handler(master_node: Node, message: Message):
         action=Action.NoAction,
         response=Response.UnhandledRequest,
         content=f"Expected type Node when registering node, got {type(message.content)}")
+
+
+def fetch_all_handler(master_node: Node, message: Message):
+    return fetch_nodes(master_node=master_node)
 

@@ -12,3 +12,6 @@ class Response(Enum):
     RegisterationSuccessful = 1
     RegisterationUnsuccessful = 2
 
+    FetchSuccessful = 3
+    FetchUnsuccessful = 4
+

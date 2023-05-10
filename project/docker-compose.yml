@@ -36,6 +36,8 @@ services:
     image: mongo:5.0.5
     networks:
       - cm
+    volumes:
+      - ./drive/db:/data/db
 
 networks:
   cm:

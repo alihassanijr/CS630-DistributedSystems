@@ -38,11 +38,12 @@ class ZmqBase:
         _logger.info(f"Bound {self.sock_type} socket to {self.hostname}:{self.port}")
 
     def close(self):
-        if self.sock:
+        if hasattr(self, "sock") and self.sock:
             self.sock.close()
             del self.sock
-        self.context.term()
-        del self.context
+        if hasattr(self, "context") and self.context:
+            self.context.term()
+            del self.context
 
     def __del__(self):
         self.close()

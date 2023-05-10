@@ -4,3 +4,9 @@ register_retry_wait: 5
 
 req_port: 5001
 rep_port: 5002
+
+num_cpus_per_child: 2
+memory_per_child: 512
+
+num_cpus_per_head: 2
+memory_per_head: 512

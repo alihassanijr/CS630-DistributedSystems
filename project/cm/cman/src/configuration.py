@@ -16,6 +16,12 @@ class Configuration:
         self.req_port            = 5001
         self.rep_port            = 5002
 
+        self.num_cpus_per_child  = 2
+        self.memory_per_child    = 512
+
+        self.num_cpus_per_head   = 2
+        self.memory_per_head     = 512
+
     def load(self, conf):
         for k, v in conf.items():
             if k in self.__dict__:

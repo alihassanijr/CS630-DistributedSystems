@@ -23,5 +23,5 @@ class Message:
 
     def __str__(self):
         return f"Message(" + \
-            f"\t node_id={self.node_id}, action={self.action}, response={self.response}, " + \
-            f"\t content={self.content})"
+            f"\n\t node_id={self.node_id}, action={self.action}, response={self.response}, " + \
+            f"\n\t content={self.content})"

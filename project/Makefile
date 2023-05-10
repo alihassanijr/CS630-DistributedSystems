@@ -7,6 +7,7 @@ all: clean run
 clean: 
 	@echo "Cleaning up"
 	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
+	rm -rf drive/db/*
 
 run:
 	docker compose up --scale computenode=4 --build
