@@ -4,8 +4,10 @@ from ..action import Action
 from ..response import Response
 from ..message import Message
 from ..node import Node
+from ..user import User
 from .register import register_node
 from .fetch import fetch_nodes
+from .adduser import adduser
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -28,6 +30,9 @@ def handle_message(master_node: Node, message: Any):
     elif message.action == Action.FetchNodes:
         return fetch_all_handler(master_node=master_node, message=message)
 
+    elif message.action == Action.CreateUser:
+        return create_user_handler(master_node=master_node, message=message)
+
     _logger.info(f"Message from node {message.node_id} not handled; unexpected action: {message.action}.")
     return Message(
         node_id=master_node.node_id,
@@ -48,4 +53,14 @@ def node_register_handler(master_node: Node, message: Message):
 
 def fetch_all_handler(master_node: Node, message: Message):
     return fetch_nodes(master_node=master_node)
+
+
+def create_user_handler(master_node: Node, message: Message):
+    if type(message.content) is User:
+        return adduser(master_node=master_node, user=message.content)
+    return Message(
+        node_id=master_node.node_id,
+        action=Action.NoAction,
+        response=Response.UnhandledRequest,
+        content=f"Expected type User, got {type(message.content)}")
 

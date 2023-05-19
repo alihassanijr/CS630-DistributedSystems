@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 import platform
+from time import sleep
 
 from .mw.socket import RequestSocket, ReplySocket
 from .action import Action
@@ -50,7 +51,7 @@ def get_resources(config, is_head):
     return cpus + memory + gpus
 
 def get_storage(master_node):
-    from src.master.database.interface import Storage
+    from src.master import Storage
     assert "CM_DATABASE_ADDR" in ENV, f"Could not find database address in environment variables (`CM_DATABASE_ADDR`)."
     assert "CM_DATABASE_PORT" in ENV, f"Could not find database portnum in environment variables (`CM_DATABASE_PORT`)."
     assert "CM_DATABASE_NAME" in ENV, f"Could not find database name in environment variables (`CM_DATABASE_NAME`)."

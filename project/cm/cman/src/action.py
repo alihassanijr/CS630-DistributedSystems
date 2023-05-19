@@ -8,5 +8,28 @@ _logger = logging.getLogger(__name__)
 class Action(Enum):
     NoAction        = 0
     RegisterNode    = 1
-    FetchNodes      = 2
+    FetchNode       = 2
+    FetchNodes      = 3
+    CreateUser      = 4
+    RemoveUser      = 5
+    ModifyUser      = 6
+    FetchUser       = 7
 
+ACTION_MAP = {
+    "user": {
+        "create": Action.CreateUser,
+        "remove": Action.RemoveUser,
+        "modify": Action.ModifyUser,
+        "show":   Action.FetchUser,
+    },
+    "node": {
+        "show":   Action.FetchNode,
+    }
+}
+
+def get_action(entity, action):
+    if entity in ACTION_MAP and action in ACTION_MAP[entity]:
+        return ACTION_MAP[entity][action]
+    elif entity in ACTION_MAP:
+        raise NotImplementedError(f"Action {action} not implemented for {entity}.")
+    raise NotImplementedError(f"Invalid entity {entity}.")
