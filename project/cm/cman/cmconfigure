@@ -51,12 +51,12 @@ def get_content(action: Action, command: list):
 if __name__ == "__main__":
     args = get_args()
     config = load_configuration()
-    node = get_node(config)
+    node = get_node()
 
     if node.is_head():
         action = get_action(entity=args.entity, action=args.action)
         content = get_content(action=action, command=args.command)
-        head_sock = RequestSocket(hostname="0.0.0.0", port=config.rep_port)
+        head_sock = RequestSocket(timeout=config.request_timeout, hostname="0.0.0.0", port=config.rep_port)
         head_sock.open(node.master_addr, config.req_port)
 
         msg = Message(

@@ -14,6 +14,7 @@ class Action(Enum):
     RemoveUser      = 5
     ModifyUser      = 6
     FetchUser       = 7
+    GetNodeStatus   = 8
 
 ACTION_MAP = {
     "user": {

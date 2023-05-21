@@ -17,10 +17,10 @@ from time import sleep
 
 if __name__ == "__main__":
     config = load_configuration()
-    node = get_node(config)
+    node = get_node()
 
     if node.is_head():
-        head_sock = RequestSocket(hostname="0.0.0.0", port=config.rep_port)
+        head_sock = RequestSocket(timeout=config.heavy_request_timeout, hostname="0.0.0.0", port=config.rep_port)
         head_sock.open(node.master_addr, config.req_port)
 
         msg = Message(
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         _logger.debug("Waiting for response")
         message = head_sock.receive()
         _logger.debug(f"Child received message: {message}")
-        if message.response == Response.FetchSuccessful:
+        if message is not None and message.response == Response.FetchSuccessful:
             _logger.debug(f"Registered with head node successfully. Proceeding.")
             for n in message.content:
                 print(n)

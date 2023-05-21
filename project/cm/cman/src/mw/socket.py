@@ -9,28 +9,48 @@ _logger = logging.getLogger(__name__)
 
 class BaseSocket(ZmqBase):
     def send(self, content):
-        return zmq_send(self.sock, content)
+        try:
+            zmq_send(self.sock, content)
+            return True
+        except:
+            return False
 
     def receive(self):
-        return zmq_recv(self.sock)
+        try:
+            return zmq_recv(self.sock)
+        except:
+            if hasattr(self, "timeout") and self.timeout is not None:
+                self.restart()
+            return None
 
 
 class RequestSocket(BaseSocket):
-    def __init__(self, hostname, port):
+    def __init__(self, timeout, hostname="0.0.0.0", port=None, target_hostname=None, target_port=None):
+        self.timeout = timeout
+        self.target_hostname = target_hostname
+        self.target_port     = target_port
         super().__init__(hostname, port)
+
+    def init_context(self):
+        super().init_context()
         self.sock = self.context.socket(zmq.REQ)
         self.sock_type = "REQ"
         _logger.info(f"Initialized {self.sock_type} socket at {self.hostname}:{self.port}")
+        self.set_timeout(self.timeout)
 
-    def open(self, target_hostname, target_port):
+    def open(self, target_hostname=None, target_port=None):
+        self.target_hostname = target_hostname or self.target_hostname
+        self.target_port = target_port or self.target_port
         super().open()
-        self.sock.connect(f"tcp://{target_hostname}:{target_port}")
-        _logger.info(f"Connected {self.sock_type} socket to {target_hostname}:{target_port}")
+        assert self.target_hostname is not None and self.target_port is not None, f"Expected a target hostname and port, got {self.target_hostname} and {self.target_port}"
+        _logger.info(f"Connecting {self.sock_type} socket to tcp://{self.target_hostname}:{self.target_port}")
+        self.sock.connect(f"tcp://{self.target_hostname}:{self.target_port}")
+        _logger.info(f"Connected {self.sock_type} socket to {self.target_hostname}:{self.target_port}")
 
 
 class ReplySocket(BaseSocket):
-    def __init__(self, hostname, port):
-        super().__init__(hostname, port)
+    def init_context(self):
+        super().init_context()
         self.sock = self.context.socket(zmq.REP)
         self.sock_type = "REP"
         _logger.info(f"Initialized {self.sock_type} socket at {self.hostname}:{self.port}")

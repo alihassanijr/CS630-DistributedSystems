@@ -10,3 +10,6 @@ memory_per_child: 512
 
 num_cpus_per_head: 2
 memory_per_head: 512
+
+request_timeout: 50
+heavy_request_timeout: 2000

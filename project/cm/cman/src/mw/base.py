@@ -26,16 +26,34 @@ class ZmqBase:
     def __init__(self, hostname, port):
         self.hostname  = hostname or 'localhost'
         self.port      = port
-        self.context   = zmq.Context()
         self.sock      = None
         self.sock_type = "None"
+        self.init_context()
+
+    def init_context(self):
+        self.context   = zmq.Context()
         _logger.info(f"Initialized Zero-MQ context.")
+
+    def set_timeout(self, timeout):
+        if self.sock is None:
+            raise NotImplementedError(f"Base class does not implement set_timeout.")
+        self.sock.setsockopt(zmq.LINGER,   0)
+        self.sock.setsockopt(zmq.AFFINITY, 1)
+        self.sock.setsockopt(zmq.RCVTIMEO, timeout)
 
     def open(self):
         if self.sock is None:
             raise NotImplementedError(f"Base class does not implement open.")
-        self.sock.bind(f"tcp://{self.hostname}:{self.port}")
+        if self.port is not None:
+            self.sock.bind(f"tcp://{self.hostname}:{self.port}")
+        else:
+            self.port = self.sock.bind_to_random_port(f"tcp://{self.hostname}")
         _logger.info(f"Bound {self.sock_type} socket to {self.hostname}:{self.port}")
+
+    def restart(self):
+        self.close()
+        self.init_context()
+        self.open()
 
     def close(self):
         if hasattr(self, "sock") and self.sock:

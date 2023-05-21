@@ -12,6 +12,7 @@ services:
     depends_on:
       - headnode
     environment:
+      CM_PATH: /cm/
       CM_SERVER_TYPE: node
       CM_MASTER_ADDR: headnode
   headnode:
@@ -23,14 +24,20 @@ services:
       - ./drive/home:/home
       - ./cm:/cm
     environment:
+      CM_PATH: /cm/
       CM_SERVER_TYPE: head
+      CM_DATABASE_ADDR: database
+      CM_DATABASE_PORT: 27017
+      CM_DATABASE_NAME: cmdb
     depends_on:
       - database
 
   database:
-    image: mongodb:5.0.5
+    image: mongo:5.0.5
     networks:
       - cm
+    volumes:
+      - ./drive/db:/data/db
 
 networks:
   cm:

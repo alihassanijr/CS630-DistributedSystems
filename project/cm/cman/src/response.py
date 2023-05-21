@@ -17,3 +17,5 @@ class Response(Enum):
     UserCreationSuccessful      = 5
     UserCreationUnsuccessful    = 6
 
+    StatusFetchSuccessful       = 7
+    StatusFetchUnsuccessful     = 8

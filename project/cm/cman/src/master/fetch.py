@@ -13,8 +13,9 @@ def fetch_nodes(
     master_node: Node
 ):
     try:
-        result = master_node.nodeman.get_all_nodes()
+        result = master_node.storage.get_all_nodes()
         if result is not None:
+            result = [node.update() for node in result]
             _logger.info(f"Fetched node information.")
             return Message(
                 node_id=master_node.node_id,
