@@ -22,7 +22,7 @@ class Node(Document):
     resources = EmbeddedDocumentListField(Resource)
 
 
-def node_to_schema(node):
+def node_to_dict(node):
     if hasattr(node, "node_id") and hasattr(node, "node_type") and hasattr(node, "resources") and type(node.resources) is list:
         resource_list = [
             {
@@ -37,6 +37,13 @@ def node_to_schema(node):
             "node_type": node.node_type,
             "resources": resource_list,
         }
+        return node_dict
+    return None
+
+
+def node_to_schema(node):
+    node_dict = node_to_dict(node)
+    if node_dict is not None:
         return Node(**node_dict)
     return None
 

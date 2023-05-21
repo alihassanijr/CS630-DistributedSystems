@@ -17,13 +17,13 @@ def create_user(uid: int, username: str, fullname: str):
 
 
 def adduser(
-    master_node: Node,
+    current_node: Node,
     user: User
 ):
     create_user(uid=user.uid, username=user.username, fullname=user.fullname)
     _logger.info(f"User {user.username} ({user.uid}) created.")
     return Message(
-        node_id=master_node.node_id,
+        node_id=current_node.node_id,
         action=Action.NoAction,
         response=Response.UserCreationSuccessful,
         content=f"Successfully created user.")

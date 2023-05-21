@@ -28,9 +28,9 @@ if __name__ == "__main__":
         while True:
             _logger.info("Waiting for message")
             message = sock.receive()
-            _logger.info(f"Head received message.")
+            _logger.info(f"Head received message: {message}")
             response = handle_message(node, message)
-            _logger.info(f"Head handled message.")
+            _logger.info(f"Head handled message: {response}")
             sock.send(response)
             _logger.info("Sent response.")
 
@@ -49,9 +49,9 @@ if __name__ == "__main__":
         while True:
             _logger.info("Waiting for message")
             message = sock.receive()
-            _logger.info(f"Received message.")
-            response = handle_message(node, message, head_sock)
-            _logger.info(f"Handled message.")
+            _logger.info(f"Received message: {message}")
+            response = handle_message(node, message)
+            _logger.info(f"Handled message: {response}")
             sock.send(response)
             _logger.info("Sent response.")
 

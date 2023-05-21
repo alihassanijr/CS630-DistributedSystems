@@ -9,7 +9,7 @@ from .action import Action
 from .message import Message
 from .resource import ResourceType, Resource
 from .response import Response
-from .status import Status, DownReason
+from .status import Status, Reason
 from .configuration import config
 
 ENV = os.environ
@@ -52,6 +52,9 @@ def get_resources(is_head):
         gpus = []
     return cpus + memory + gpus
 
+def running_jobs():
+    return False
+
 def get_storage(master_node):
     from src.master import Storage
     assert "CM_DATABASE_ADDR" in ENV, f"Could not find database address in environment variables (`CM_DATABASE_ADDR`)."
@@ -77,11 +80,22 @@ class Node:
         return f"Node(id={self.node_id}, type={self.node_type},\n\tresources={[str(r) for r in self.resources]},\n\t" + \
             f"status={self.status}, status_reason={self.status_reason})"
 
-    def update(self):
+    def self_update(self):
+        if self.is_head():
+            self.status = Status.Up
+        else:
+            self.status = Status.InUse if running_jobs() else Status.Idle
+        self.status_reason = Reason.NoReason
+        return self
+
+    def update(self, requesting_node=None):
         try:
-            self.status, self.status_reason = get_node_status(self)
+            if requesting_node.node_id == self.node_id:
+                self.self_update()
+            else:
+                self.status, self.status_reason = get_node_status(self)
         except:
-            self.status, self.status_reason = Status.Down, DownReason.StatusFetchExecutionFailed
+            self.status, self.status_reason = Status.Down, Reason.StatusFetchExecutionFailed
         return self
 
 def get_node():
@@ -139,10 +153,10 @@ def get_node_status(node):
         _logger.info(f"Received : {message}")
         if message is None:
             sock.close()
-            return Status.Down, DownReason.FailedToRespond
+            return Status.Down, Reason.FailedToRespond
         if not hasattr(message, "response"):
             sock.close()
-            return Status.Down, DownReason.InvalidResponse
+            return Status.Down, Reason.InvalidResponse
 
         if message.response == Response.StatusFetchSuccessful:
             _logger.info(f"Fetched node status successfully.")
@@ -151,13 +165,13 @@ def get_node_status(node):
         else:
             _logger.info(f"Fetching node status was not successful.")
             sock.close()
-            return Status.Down, DownReason.FetchFailedAtNode
+            return Status.Down, Reason.FetchFailedAtNode
 
         sock.close()
-        return Status.Down, DownReason.InvalidResponse
+        return Status.Down, Reason.InvalidResponse
     else:
         _logger.info("Failed to send request to node.")
-        return Status.Down, DownReason.Unreachable
+        return Status.Down, Reason.Unreachable
 
 def generate_register_message(node):
     return Message(
