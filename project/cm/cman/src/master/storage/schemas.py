@@ -1,9 +1,11 @@
 import logging
 from mongoengine import StringField, IntField, FloatField, EnumField
 from mongoengine import EmbeddedDocument, Document, EmbeddedDocumentListField
+from mongoengine import ReferenceField, SequenceField, ListField
 from ...resource import ResourceType
 from ...resource import Resource as ResourceClass
 from ...node import Node as NodeClass
+from ...job import Job as JobClass
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -20,6 +22,15 @@ class Node(Document):
     node_id   = StringField(required=True)
     node_type = StringField(required=True)
     resources = EmbeddedDocumentListField(Resource)
+
+
+class Job(Document):
+    job_id         = SequenceField(required=True)
+    job_name       = StringField()
+    uid            = IntField(required=True)
+    command        = StringField(required=True)
+    time_limit     = IntField()
+    nodes_reserved = ListField(ReferenceField(Node))
 
 
 def node_to_dict(node):
@@ -41,11 +52,36 @@ def node_to_dict(node):
     return None
 
 
+def job_to_dict(job):
+    if hasattr(job, "job_name") and hasattr(job, "uid") and hasattr(job, "command"):
+        job_dict = {
+            "job_name": job.job_name,
+            "uid": job.uid,
+            "command": job.command,
+        }
+        if hasattr(job, "job_id") and job.job_id is not None:
+            job_dict["job_id"] = job.job_id
+        if hasattr(job, "time_limit"):
+            job_dict["time_limit"] = job.time_limit
+        if hasattr(job, "nodes_reserved") and job.job_id is not None:
+            job_dict["nodes_reserved"] = job.nodes_reserved
+        return job_dict
+    return None
+
+
 def node_to_schema(node):
     node_dict = node_to_dict(node)
     if node_dict is not None:
         return Node(**node_dict)
     return None
+
+
+def job_to_schema(job):
+    job_dict = job_to_dict(job)
+    if job_dict is not None:
+        return Job(**job_dict)
+    return None
+
 
 def schema_to_node(node_schema: Node) -> NodeClass:
     resources = [
@@ -56,5 +92,16 @@ def schema_to_node(node_schema: Node) -> NodeClass:
         node_id=node_schema.node_id,
         node_type=node_schema.node_type,
         resources=resources
+    )
+
+
+def schema_to_job(job_schema: Job) -> JobClass:
+    return JobClass(
+        job_id=job_schema.job_id,
+        job_name=job_schema.job_name,
+        uid=job_schema.uid,
+        command=job_schema.command,
+        time_limit=job_schema.time_limit,
+        nodes_reserved=job_schema.nodes_reserved
     )
 

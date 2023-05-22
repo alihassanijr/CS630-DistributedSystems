@@ -13,3 +13,10 @@ memory_per_head: 512
 
 request_timeout: 50
 heavy_request_timeout: 2000
+
+
+default_n_nodes: 1
+default_n_procs: 1
+default_n_cpus_per_node: 1
+default_mem_per_node: 100
+default_time_limit: 0

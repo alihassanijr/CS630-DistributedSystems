@@ -25,6 +25,12 @@ class Configuration:
         self.request_timeout       = 50
         self.heavy_request_timeout = 2000
 
+        self.default_n_nodes         = 1
+        self.default_n_procs         = 1
+        self.default_n_cpus_per_node = 1
+        self.default_mem_per_node    = 100
+        self.default_time_limit      = 0
+
     def load(self, conf):
         for k, v in conf.items():
             if k in self.__dict__:

@@ -19,3 +19,6 @@ class Response(Enum):
 
     StatusFetchSuccessful       = 7
     StatusFetchUnsuccessful     = 8
+
+    AssignJobIdSuccessful       = 9
+    AssignJobIdUnsuccessful     = 10

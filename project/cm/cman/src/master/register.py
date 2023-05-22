@@ -3,6 +3,7 @@ from ..action import Action
 from ..response import Response
 from ..message import Message
 from ..node import Node
+from ..job import Job
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -29,3 +30,25 @@ def register_node(
         action=Action.NoAction,
         response=Response.RegisterationUnsuccessful,
         content=f"Failed to register node.")
+
+
+def create_job(
+    current_node: Node,
+    job: Job
+):
+    try:
+        result = current_node.storage.create_job(job)
+        if result:
+            _logger.info(f"Job {result.job_id} created.")
+            return Message(
+                node_id=current_node.node_id,
+                action=Action.NoAction,
+                response=Response.AssignJobIdSuccessful,
+                content=result)
+    except:
+        pass
+    return Message(
+        node_id=current_node.node_id,
+        action=Action.NoAction,
+        response=Response.AssignJobIdUnsuccessful,
+        content=f"Failed to create job.")

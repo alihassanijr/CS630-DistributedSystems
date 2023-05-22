@@ -108,6 +108,15 @@ def get_node():
         node.master_addr = ENV["CM_MASTER_ADDR"]
     return node
 
+def is_head():
+    return get_node_type() == SERVER_TYPE_HEAD
+
+def get_head_addr():
+    if not is_head():
+        return ENV["CM_MASTER_ADDR"]
+    return '0.0.0.0'
+
+
 def setup_head_daemon(node):
     if not node.is_head():
         return False

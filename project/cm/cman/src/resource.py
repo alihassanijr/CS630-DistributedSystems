@@ -20,3 +20,19 @@ class Resource:
 
     def __str__(self):
         return f"Resource(name={self.name}, type={self.rtype}, capacity={self.capacity})"
+
+
+class ResourceRequirement:
+    def __init__(self, n_nodes, n_cpus_per_node, mem_per_node):
+        self.n_nodes = n_nodes
+        self.n_cpus_per_node = n_cpus_per_node
+        self.mem_per_node = mem_per_node
+
+    def __str__(self):
+        return f"ResourceRequirement(" + \
+            f"n_nodes={self.n_nodes}, " + \
+            f"n_cpus_per_node={self.n_cpus_per_node}, " + \
+            f"mem_per_node={self.mem_per_node}, " + \
+            f"total_cpus={self.n_cpus_per_node * self.n_nodes}, " + \
+            f"total_mem={self.mem_per_node * self.n_nodes}" + \
+            f")"

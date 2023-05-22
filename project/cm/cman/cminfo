@@ -11,6 +11,7 @@ from src.action import Action
 from src.response import Response
 from src.message import Message
 from src.node import get_node
+from src.commons import send_message_to_head
 from src.configuration import load_configuration
 
 from time import sleep
@@ -20,25 +21,22 @@ if __name__ == "__main__":
     node = get_node()
 
     if node.is_head():
-        head_sock = RequestSocket(timeout=config.heavy_request_timeout, hostname="0.0.0.0", port=config.rep_port)
-        head_sock.open(node.master_addr, config.req_port)
-
         msg = Message(
             node_id=node.node_id,
             action=Action.FetchNodes,
             response=None,
             content=None)
-        _logger.debug("Fetching node info")
-        head_sock.send(msg)
-        _logger.debug("Waiting for response")
-        message = head_sock.receive()
-        _logger.debug(f"Child received message: {message}")
-        if message is not None and message.response == Response.FetchSuccessful:
+
+        message, success = send_message_to_head(msg)
+
+        if success and message is not None and message.response == Response.FetchSuccessful:
             _logger.debug(f"Registered with head node successfully. Proceeding.")
             for n in message.content:
                 print(n)
-        else:
+        elif success:
             print(f"Failed! {message}")
+        else:
+            print(f"Could not successfully contact head node!")
 
     elif node.is_compute():
         raise NotImplementedError(f"cminfo should only be called from head node.")
