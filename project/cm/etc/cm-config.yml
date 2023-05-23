@@ -1,4 +1,5 @@
 head_daemon_lag: 5 # milliseconds
+scheduler_lag: 1000 # milliseconds
 
 register_retries: 10
 register_retry_wait: 5
@@ -12,7 +13,7 @@ memory_per_child: 512
 num_cpus_per_head: 2
 memory_per_head: 512
 
-request_timeout: 50
+request_timeout: 100
 heavy_request_timeout: 2000
 
 

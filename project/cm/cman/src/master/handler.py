@@ -7,7 +7,8 @@ from ..node import Node
 from ..job import Job
 from ..user import User
 from ..status import Status
-from .register import register_node, create_job
+from .register import register_node
+from .job import create_job
 from .fetch import fetch_nodes
 from .adduser import adduser
 

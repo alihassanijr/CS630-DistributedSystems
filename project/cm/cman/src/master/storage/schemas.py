@@ -1,11 +1,13 @@
 import logging
 from mongoengine import StringField, IntField, FloatField, EnumField
-from mongoengine import EmbeddedDocument, Document, EmbeddedDocumentListField
+from mongoengine import EmbeddedDocument, EmbeddedDocumentField, Document, EmbeddedDocumentListField
 from mongoengine import ReferenceField, SequenceField, ListField
 from ...resource import ResourceType
 from ...resource import Resource as ResourceClass
+from ...resource import ResourceRequirement as ResourceRequirementClass
 from ...node import Node as NodeClass
 from ...job import Job as JobClass
+from ...job import JobStatus
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -16,6 +18,12 @@ class Resource(EmbeddedDocument):
     resource_name     = StringField(required=True)
     resource_type     = EnumField(ResourceType, required=True)
     resource_capacity = FloatField(required=True)
+
+
+class ResourceRequirement(EmbeddedDocument):
+    n_nodes = IntField(required=True)
+    n_cpus_per_node = IntField(required=True)
+    mem_per_node = IntField(required=True)
 
 
 class Node(Document):
@@ -31,6 +39,8 @@ class Job(Document):
     command        = StringField(required=True)
     time_limit     = IntField()
     nodes_reserved = ListField(ReferenceField(Node))
+    resource_req   = EmbeddedDocumentField(ResourceRequirement, required=True)
+    status         = EnumField(JobStatus, required=True)
 
 
 def node_to_dict(node):
@@ -53,11 +63,20 @@ def node_to_dict(node):
 
 
 def job_to_dict(job):
-    if hasattr(job, "job_name") and hasattr(job, "uid") and hasattr(job, "command"):
+    if hasattr(job, "job_name") and hasattr(job, "uid") and hasattr(job, "command") and hasattr(job, "status") and \
+            hasattr(job, "resource_req") and hasattr(job.resource_req, "n_nodes") \
+            and hasattr(job.resource_req, "n_cpus_per_node") and hasattr(job.resource_req, "mem_per_node"):
+        resource_req = {
+            "n_nodes": job.resource_req.n_nodes,
+            "n_cpus_per_node": job.resource_req.n_cpus_per_node,
+            "mem_per_node": job.resource_req.mem_per_node,
+            }
         job_dict = {
             "job_name": job.job_name,
             "uid": job.uid,
             "command": job.command,
+            "resource_req": resource_req,
+            "status": job.status,
         }
         if hasattr(job, "job_id") and job.job_id is not None:
             job_dict["job_id"] = job.job_id
@@ -101,6 +120,11 @@ def schema_to_job(job_schema: Job) -> JobClass:
         job_name=job_schema.job_name,
         uid=job_schema.uid,
         command=job_schema.command,
+        resource_req=ResourceRequirementClass(
+            n_nodes=job_schema.resource_req.n_nodes,
+            n_cpus_per_node=job_schema.resource_req.n_cpus_per_node,
+            mem_per_node=job_schema.resource_req.mem_per_node
+        ),
         time_limit=job_schema.time_limit,
         nodes_reserved=job_schema.nodes_reserved
     )

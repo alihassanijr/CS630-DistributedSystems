@@ -6,6 +6,7 @@ from .schemas import node_to_schema, schema_to_node, node_to_dict, Node
 from .schemas import job_to_schema, schema_to_job, Job
 from ...node import Node as NodeClass
 from ...job import Job as JobClass
+from ...job import JobStatus
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -48,3 +49,24 @@ class Storage:
             _logger.info(f"Creating job record...")
             job_inst.save()
         return schema_to_job(job_inst)
+
+    def update_job(self, job: JobClass) -> bool:
+        existing_job = Node.objects(job_id__exact=job.job_id)
+        if existing_job is not None and hasattr(existing_job, "first"):
+            existing_job = existing_job.first()
+            if existing_job is not None and hasattr(existing_job, "update"):
+                existing_job.update(**job_to_dict(job))
+                return schema_to_job(existing_job)
+        return None
+
+    def get_jobs(self):
+        try:
+            return [schema_to_job(j) for j in Job.objects]
+        except:
+            return None
+
+    def get_remaining_jobs(self):
+        try:
+            return [schema_to_job(j) for j in Job.objects(status__exact=JobStatus.Pending)]
+        except:
+            return None

@@ -11,6 +11,8 @@ _logger = logging.getLogger(__name__)
 class Configuration:
     def __init__(self):
         self.head_daemon_lag       = 5 # milliseconds
+        self.scheduler_lag         = 1000 # milliseconds
+
         self.register_retries      = 10
         self.register_retry_wait   = 5
 
@@ -23,7 +25,7 @@ class Configuration:
         self.num_cpus_per_head     = 2
         self.memory_per_head       = 512
 
-        self.request_timeout       = 50
+        self.request_timeout       = 100
         self.heavy_request_timeout = 2000
 
         self.default_n_nodes         = 1

@@ -5,7 +5,7 @@ import os
 import logging
 from typing import Any
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.WARNING)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 _logger = logging.getLogger(__name__)
 
 from src.mw.socket import RequestSocket, ReplySocket
