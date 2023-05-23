@@ -21,6 +21,12 @@ def zmq_send(socket, content):
 def zmq_recv(socket):
     return socket.recv_pyobj()
 
+def zmq_recv_nonblocking(socket):
+    try:
+        return socket.recv_pyobj(flags=zmq.NOBLOCK)
+    except zmq.Again as e:
+        return None
+
 
 class ZmqBase:
     def __init__(self, hostname, port):

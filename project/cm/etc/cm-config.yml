@@ -1,3 +1,4 @@
+head_daemon_lag: 5 # milliseconds
 
 register_retries: 10
 register_retry_wait: 5

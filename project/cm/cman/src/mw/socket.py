@@ -1,6 +1,6 @@
 import logging
 import zmq
-from .base import ZmqBase, zmq_send, zmq_recv
+from .base import ZmqBase, zmq_send, zmq_recv, zmq_recv_nonblocking
 from time import sleep
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -22,6 +22,9 @@ class BaseSocket(ZmqBase):
             if hasattr(self, "timeout") and self.timeout is not None:
                 self.restart()
             return None
+
+    def receive_nb(self):
+        return zmq_recv_nonblocking(self.sock)
 
 
 class RequestSocket(BaseSocket):

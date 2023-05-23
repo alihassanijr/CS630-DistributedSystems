@@ -2,6 +2,7 @@
 
 import os
 
+from src.commons import lag
 from src.mw.socket import RequestSocket, ReplySocket
 from src.response import Response
 from src.node import get_node, setup_head_daemon, register_node
@@ -11,6 +12,20 @@ import logging
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
+
+def incoming_routine(sock):
+    _logger.debug("Checking for messages")
+    message = sock.receive_nb()
+    if message is not None:
+        _logger.info(f"Head received message: {message}")
+        response = handle_message(node, message)
+        _logger.info(f"Head handled message: {response}")
+        sock.send(response)
+        _logger.info("Sent response.")
+
+def scheduling_routine():
+    _logger.debug("Checking scheduler")
+    return None
 
 if __name__ == "__main__":
     config = load_configuration()
@@ -26,13 +41,9 @@ if __name__ == "__main__":
         sock.open()
 
         while True:
-            _logger.info("Waiting for message")
-            message = sock.receive()
-            _logger.info(f"Head received message: {message}")
-            response = handle_message(node, message)
-            _logger.info(f"Head handled message: {response}")
-            sock.send(response)
-            _logger.info("Sent response.")
+            incoming_routine(sock)
+            scheduling_routine()
+            lag(config.head_daemon_lag)
 
         sock.close()
 

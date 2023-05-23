@@ -5,8 +5,26 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
 
+class JobStatus(Enum):
+    Created = 0
+    Pending = 1
+    Started = 2
+    Running = 3
+    Completed = 4
+    Killed = 5
+
+
 class Job:
-    def __init__(self, job_id, job_name, uid, command, resource_req=None, time_limit=-1, nodes_reserved=None):
+    def __init__(self,
+                 job_id,
+                 job_name,
+                 uid,
+                 command,
+                 resource_req=None,
+                 time_limit=-1,
+                 nodes_reserved=None,
+                 status=JobStatus.Pending
+        ):
         self.job_id         = job_id
         self.job_name       = job_name
         self.uid            = uid
@@ -14,9 +32,10 @@ class Job:
         self.resource_req   = resource_req
         self.time_limit     = time_limit
         self.nodes_reserved = nodes_reserved
+        self.status         = status
 
     def merge(self, new_job):
-        for attr in ["job_id", "job_name", "uid", "command", "resource_req", "time_limit", "nodes_reserved"]:
+        for attr in ["job_id", "job_name", "uid", "command", "resource_req", "time_limit", "nodes_reserved", "status"]:
             if hasattr(new_job, attr) and hasattr(self, attr):
                 setattr(self, attr, getattr(new_job, attr) or getattr(self, attr))
             elif hasattr(new_job, attr):
@@ -34,4 +53,5 @@ class Job:
             f"time_limit={self.time_limit}, " + \
             f"nodes_reserved={self.nodes_reserved}, " + \
             f"resource_req={self.resource_req}, " + \
+            f"status={self.status}, " + \
             f")"

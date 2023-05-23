@@ -28,3 +28,6 @@ def send_message_to_head(message):
 
 def send_message_to_node(node, message):
     return send_message(node.node_id, message)
+
+def lag(ms):
+    sleep(ms / 1000)

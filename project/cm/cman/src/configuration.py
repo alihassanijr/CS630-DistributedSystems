@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class Configuration:
     def __init__(self):
+        self.head_daemon_lag       = 5 # milliseconds
         self.register_retries      = 10
         self.register_retry_wait   = 5
 
