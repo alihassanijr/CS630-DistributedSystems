@@ -55,3 +55,17 @@ class Job:
             f"resource_req={self.resource_req}, " + \
             f"status={self.status}, " + \
             f")"
+
+    def update_nodes(self, nodes):
+        if self.nodes_reserved is None or len(self.nodes_reserved) < 1:
+            self.nodes_reserved = nodes
+            return self
+        node_ids = {n.node_id: i for i, n in enumerate(self.nodes_reserved)}
+        for n in nodes:
+            if n.node_id in node_ids:
+                self.nodes_reserved[node_ids[n.node_id]] = n
+        return self
+
+    def start(self):
+        self.status = JobStatus.Started
+        return self

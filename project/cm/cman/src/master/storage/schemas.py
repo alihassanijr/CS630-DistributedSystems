@@ -62,7 +62,7 @@ def node_to_dict(node):
     return None
 
 
-def job_to_dict(job):
+def job_to_dict(job, for_mongo=False):
     if hasattr(job, "job_name") and hasattr(job, "uid") and hasattr(job, "command") and hasattr(job, "status") and \
             hasattr(job, "resource_req") and hasattr(job.resource_req, "n_nodes") \
             and hasattr(job.resource_req, "n_cpus_per_node") and hasattr(job.resource_req, "mem_per_node"):
@@ -83,7 +83,11 @@ def job_to_dict(job):
         if hasattr(job, "time_limit"):
             job_dict["time_limit"] = job.time_limit
         if hasattr(job, "nodes_reserved") and job.job_id is not None:
-            job_dict["nodes_reserved"] = job.nodes_reserved
+            if for_mongo:
+                job_dict["nodes_reserved"] = [Node.objects(node_id__exact=x.node_id).first().to_dbref() for x in job.nodes_reserved]
+            else:
+                job_dict["nodes_reserved"] = job.nodes_reserved
+
         return job_dict
     return None
 
@@ -126,6 +130,6 @@ def schema_to_job(job_schema: Job) -> JobClass:
             mem_per_node=job_schema.resource_req.mem_per_node
         ),
         time_limit=job_schema.time_limit,
-        nodes_reserved=job_schema.nodes_reserved
+        nodes_reserved=[schema_to_node(x) for x in job_schema.nodes_reserved]
     )
 

@@ -22,3 +22,9 @@ class Response(Enum):
 
     AssignJobIdSuccessful       = 9
     AssignJobIdUnsuccessful     = 10
+
+    JobHostingSuccessful        = 11
+    JobHostingUnsuccessful      = 12
+
+    JobStartSuccessful          = 13
+    JobStartUnsuccessful        = 14

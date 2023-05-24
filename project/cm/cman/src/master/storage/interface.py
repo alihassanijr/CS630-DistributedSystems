@@ -3,7 +3,7 @@ from mongoengine import connect
 import uuid
 
 from .schemas import node_to_schema, schema_to_node, node_to_dict, Node
-from .schemas import job_to_schema, schema_to_job, Job
+from .schemas import job_to_schema, schema_to_job, job_to_dict, Job
 from ...node import Node as NodeClass
 from ...job import Job as JobClass
 from ...job import JobStatus
@@ -51,22 +51,22 @@ class Storage:
         return schema_to_job(job_inst)
 
     def update_job(self, job: JobClass) -> bool:
-        existing_job = Node.objects(job_id__exact=job.job_id)
+        existing_job = Job.objects(job_id__exact=job.job_id)
         if existing_job is not None and hasattr(existing_job, "first"):
             existing_job = existing_job.first()
             if existing_job is not None and hasattr(existing_job, "update"):
-                existing_job.update(**job_to_dict(job))
+                existing_job.update(**job_to_dict(job, for_mongo=True))
                 return schema_to_job(existing_job)
         return None
 
     def get_jobs(self):
         try:
-            return [schema_to_job(j) for j in Job.objects]
+            return [schema_to_job(j) for j in Job.objects.select_related()]
         except:
             return None
 
     def get_remaining_jobs(self):
         try:
-            return [schema_to_job(j) for j in Job.objects(status__exact=JobStatus.Pending)]
+            return [schema_to_job(j) for j in Job.objects(status__exact=JobStatus.Pending).select_related()]
         except:
             return None

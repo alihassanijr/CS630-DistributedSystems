@@ -29,16 +29,18 @@ def zmq_recv_nonblocking(socket):
 
 
 class ZmqBase:
-    def __init__(self, hostname, port):
+    def __init__(self, hostname, port, verbose=False):
         self.hostname  = hostname or 'localhost'
         self.port      = port
         self.sock      = None
         self.sock_type = "None"
+        self.verbose = verbose
         self.init_context()
 
     def init_context(self):
         self.context   = zmq.Context()
-        _logger.info(f"Initialized Zero-MQ context.")
+        if self.verbose:
+            _logger.info(f"Initialized Zero-MQ context.")
 
     def set_timeout(self, timeout):
         if self.sock is None:
@@ -54,7 +56,8 @@ class ZmqBase:
             self.sock.bind(f"tcp://{self.hostname}:{self.port}")
         else:
             self.port = self.sock.bind_to_random_port(f"tcp://{self.hostname}")
-        _logger.info(f"Bound {self.sock_type} socket to {self.hostname}:{self.port}")
+        if self.verbose:
+            _logger.info(f"Bound {self.sock_type} socket to {self.hostname}:{self.port}")
 
     def restart(self):
         self.close()

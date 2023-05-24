@@ -16,6 +16,9 @@ class Action(Enum):
     FetchUser       = 7
     GetNodeStatus   = 8
     AssignJobId     = 9
+    HostJob         = 10
+    StartJob        = 11
+
 
 ACTION_MAP = {
     "user": {
@@ -28,6 +31,7 @@ ACTION_MAP = {
         "show":   Action.FetchNode,
     }
 }
+
 
 def get_action(entity, action):
     if entity in ACTION_MAP and action in ACTION_MAP[entity]:

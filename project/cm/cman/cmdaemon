@@ -39,18 +39,22 @@ def incoming_routine():
 
 def scheduling_routine():
     _logger.info("Starting scheduler")
-    from src.master.scheduler import try_assign_job
+    from src.master.scheduler import try_assign_job, start_job, fetch_available_nodes
     from src.master.job import update_job, get_remaining_jobs
     while True:
         _logger.debug("Checking scheduler")
         jobs = get_remaining_jobs(node)
-        if jobs is not None and len(jobs) > 0:
+        avail_nodes = fetch_available_nodes(node)
+        if avail_nodes is not None and len(avail_nodes) > 0 and jobs is not None and len(jobs) > 0:
             for job in jobs:
-                status, job = try_assign_job(node, job)
+                status, job = try_assign_job(node, job, avail_nodes)
                 if status:
                     succ = update_job(node, job)
                     if not succ:
                         raise RuntimeError(f"Updating job failed: {job}")
+                    for n in job.nodes_reserved:
+                        n = start_job(node, job, n)
+                        assert node.storage.register_node(n), f"Failed to update node {n}... Exiting."
         lag(config.scheduler_lag)
 
 
@@ -86,13 +90,13 @@ if __name__ == "__main__":
         sock.open()
 
         while True:
-            _logger.info("Waiting for message")
+            _logger.debug("Waiting for message")
             message = sock.receive()
-            _logger.info(f"Received message: {message}")
+            _logger.debug(f"Received message: {message}")
             response = handle_message(node, message)
-            _logger.info(f"Handled message: {response}")
+            _logger.debug(f"Handled message: {response}")
             sock.send(response)
-            _logger.info("Sent response.")
+            _logger.debug("Sent response.")
 
         head_sock.close()
         sock.close()
