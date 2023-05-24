@@ -10,7 +10,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
 
-def create_job(
+def create_job_msg(
     current_node: Node,
     job: Job
 ):
@@ -64,3 +64,22 @@ def get_remaining_jobs(
     except:
         pass
     return None
+
+
+def get_alive_jobs_msg(
+    current_node: Node
+):
+    try:
+        jobs = current_node.storage.get_alive_jobs()
+        return Message(
+            node_id=current_node.node_id,
+            action=Action.NoAction,
+            response=Response.FetchSuccessful,
+            content=jobs)
+    except:
+        pass
+    return Message(
+        node_id=current_node.node_id,
+        action=Action.NoAction,
+        response=Response.FetchUnsuccessful,
+        content=f"Failed to fetch jobs.")

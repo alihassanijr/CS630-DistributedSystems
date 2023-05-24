@@ -70,3 +70,9 @@ class Storage:
             return [schema_to_job(j) for j in Job.objects(status__exact=JobStatus.Pending).select_related()]
         except:
             return None
+
+    def get_alive_jobs(self):
+        try:
+            return [schema_to_job(j) for j in Job.objects(status__nin=[JobStatus.Killed, JobStatus.Completed]).select_related()]
+        except:
+            return None

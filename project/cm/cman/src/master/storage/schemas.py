@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 class Resource(EmbeddedDocument):
     resource_name     = StringField(required=True)
     resource_type     = EnumField(ResourceType, required=True)
-    resource_capacity = FloatField(required=True)
+    resource_capacity = IntField(required=True)
 
 
 class ResourceRequirement(EmbeddedDocument):
@@ -124,6 +124,7 @@ def schema_to_job(job_schema: Job) -> JobClass:
         job_name=job_schema.job_name,
         uid=job_schema.uid,
         command=job_schema.command,
+        status=job_schema.status,
         resource_req=ResourceRequirementClass(
             n_nodes=job_schema.resource_req.n_nodes,
             n_cpus_per_node=job_schema.resource_req.n_cpus_per_node,

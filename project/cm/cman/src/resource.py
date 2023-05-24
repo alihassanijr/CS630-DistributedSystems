@@ -6,6 +6,8 @@ from typing import Optional
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
+from .base import CMObject
+
 
 class ResourceType(Enum):
     Memory = 0
@@ -13,8 +15,8 @@ class ResourceType(Enum):
     GPU    = 2
 
 
-class Resource:
-    def __init__(self, name: str, resource_type: ResourceType, capacity: float, users: Optional[list] = None):
+class Resource(CMObject):
+    def __init__(self, name: str, resource_type: ResourceType, capacity: int, users: Optional[list] = None):
         self.name = name
         self.rtype = resource_type
         self.capacity = capacity
@@ -43,7 +45,7 @@ class Resource:
         return False
 
 
-class ResourceRequirement:
+class ResourceRequirement(CMObject):
     def __init__(self, n_nodes, n_cpus_per_node, mem_per_node):
         self.n_nodes = n_nodes
         self.n_cpus_per_node = n_cpus_per_node

@@ -4,6 +4,8 @@ from enum import Enum
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
+from .base import CMObject
+
 
 class JobStatus(Enum):
     Created = 0
@@ -14,7 +16,7 @@ class JobStatus(Enum):
     Killed = 5
 
 
-class Job:
+class Job(CMObject):
     def __init__(self,
                  job_id,
                  job_name,

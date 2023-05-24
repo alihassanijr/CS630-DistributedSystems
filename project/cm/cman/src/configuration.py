@@ -7,8 +7,9 @@ ENV      = os.environ
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
+from .base import CMObject
 
-class Configuration:
+class Configuration(CMObject):
     def __init__(self):
         self.head_daemon_lag       = 5 # milliseconds
         self.scheduler_lag         = 1000 # milliseconds

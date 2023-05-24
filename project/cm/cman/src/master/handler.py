@@ -8,7 +8,7 @@ from ..job import Job
 from ..user import User
 from ..status import Status
 from .register import register_node
-from .job import create_job
+from .job import create_job_msg, get_alive_jobs_msg
 from .fetch import fetch_nodes
 from .adduser import adduser
 
@@ -35,13 +35,17 @@ def node_register_handler(current_node: Node, message: Message):
         content=f"Expected type Node when registering node, got {type(message.content)}")
 
 
-def fetch_all_handler(current_node: Node, message: Message):
+def fetch_nodes_handler(current_node: Node, message: Message):
     return fetch_nodes(current_node=current_node)
+
+
+def fetch_jobs_handler(current_node: Node, message: Message):
+    return get_alive_jobs_msg(current_node=current_node)
 
 
 def assign_job_id_handler(current_node: Node, message: Message):
     if type(message.content) is Job:
-        return create_job(current_node=current_node, job=message.content)
+        return create_job_msg(current_node=current_node, job=message.content)
     return Message(
         node_id=current_node.node_id,
         action=Action.NoAction,
@@ -62,7 +66,8 @@ def create_user_handler(current_node: Node, message: Message):
 ACTION_TO_HANDLER = {
     Action.GetNodeStatus: get_status,
     Action.RegisterNode:  node_register_handler,
-    Action.FetchNodes:    fetch_all_handler,
+    Action.FetchNodes:    fetch_nodes_handler,
+    Action.FetchJobs:     fetch_jobs_handler,
     Action.CreateUser:    create_user_handler,
     Action.AssignJobId:   assign_job_id_handler,
 }

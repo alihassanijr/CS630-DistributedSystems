@@ -2,6 +2,7 @@ import logging
 import os
 from time import sleep
 
+from .base import CMObject
 from .environment import *
 from .action import Action
 from .message import Message
@@ -67,7 +68,7 @@ def host_job(node, job):
         return True, node
     return False, node
 
-class Node:
+class Node(CMObject):
     def __init__(self, node_id, node_type, resources):
         self.node_id   = node_id
         self.node_type = node_type

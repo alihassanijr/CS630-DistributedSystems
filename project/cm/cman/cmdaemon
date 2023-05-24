@@ -49,12 +49,10 @@ def scheduling_routine():
             for job in jobs:
                 status, job = try_assign_job(node, job, avail_nodes)
                 if status:
-                    succ = update_job(node, job)
-                    if not succ:
-                        raise RuntimeError(f"Updating job failed: {job}")
                     for n in job.nodes_reserved:
                         n = start_job(node, job, n)
                         assert node.storage.register_node(n), f"Failed to update node {n}... Exiting."
+                    assert update_job(node, job), f"Updating job failed: {job}"
         lag(config.scheduler_lag)
 
 

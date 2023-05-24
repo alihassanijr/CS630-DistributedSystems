@@ -12,34 +12,54 @@ from src.response import Response
 from src.message import Message
 from src.node import get_node
 from src.commons import send_message_to_head
-from src.configuration import load_configuration
+from src.configuration import config
+from src.display import print_nodes, print_jobs
 
 from time import sleep
 
-if __name__ == "__main__":
-    config = load_configuration()
-    node = get_node()
+node = get_node()
 
-    if node.is_head():
-        msg = Message(
-            node_id=node.node_id,
-            action=Action.FetchNodes,
-            response=None,
-            content=None)
+def get_nodes():
+    msg = Message(
+        node_id=node.node_id,
+        action=Action.FetchNodes,
+        response=None,
+        content=None)
 
-        message, success = send_message_to_head(msg)
+    message, success = send_message_to_head(msg)
 
-        if success and message is not None and message.response == Response.FetchSuccessful:
-            _logger.debug(f"Registered with head node successfully. Proceeding.")
-            for n in message.content:
-                print(n)
-        elif success:
-            print(f"Failed! {message}")
-        else:
-            print(f"Could not successfully contact head node!")
-
-    elif node.is_compute():
-        raise NotImplementedError(f"cminfo should only be called from head node.")
-
+    if success and message is not None and message.response == Response.FetchSuccessful:
+        _logger.debug(f"Registered with head node successfully. Proceeding.")
+        nodes = message.content
+        return nodes
+    elif success:
+        raise RuntimeError(f"Failed! {message}")
     else:
-        raise NotImplementedError(f"Server type not recognized. This should not have happened!")
+        raise RuntimeError(f"Could not successfully contact head node!")
+
+def get_jobs():
+    msg = Message(
+        node_id=node.node_id,
+        action=Action.FetchJobs,
+        response=None,
+        content=None)
+
+    message, success = send_message_to_head(msg)
+
+    if success and message is not None and message.response == Response.FetchSuccessful:
+        _logger.debug(f"Registered with head node successfully. Proceeding.")
+        jobs = message.content
+        return jobs
+    elif success:
+        raise RuntimeError(f"Failed! {message}")
+    else:
+        raise RuntimeError(f"Could not successfully contact head node!")
+
+if __name__ == "__main__":
+    assert node.is_head(), f"cminfo should only be called from head node."
+
+    nodes = get_nodes()
+    jobs = get_jobs()
+    print_nodes(nodes)
+    print_jobs(jobs)
+
