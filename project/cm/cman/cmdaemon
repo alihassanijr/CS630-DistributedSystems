@@ -15,89 +15,41 @@ import logging
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
-node = get_node()
-None if not node.is_head() else setup_head_daemon(node)
-
-def incoming_routine():
-    _logger.info("Starting message service")
-    from src.master.handler import handle_message
-    sock = ReplySocket(hostname="0.0.0.0", port=config.req_port)
-    sock.open()
-    while True:
-        _logger.info("Checking for messages")
-        message = sock.receive()
-        #message = sock.receive_nb()
-        if message is not None:
-            _logger.info(f"Head received message: {message}")
-            response = handle_message(node, message)
-            _logger.info(f"Head responding with: {response}")
-            sock.send(response)
-            _logger.info("Sent response.")
-
-    sock.close()
-
-
-def scheduling_routine():
-    _logger.info("Starting scheduler")
-    from src.master.scheduler import try_assign_job, start_job, fetch_available_nodes
-    from src.master.job import update_job, get_remaining_jobs
-    while True:
-        _logger.debug("Checking scheduler")
-        jobs = get_remaining_jobs(node)
-        avail_nodes = fetch_available_nodes(node)
-        if avail_nodes is not None and len(avail_nodes) > 0 and jobs is not None and len(jobs) > 0:
-            for job in jobs:
-                status, job = try_assign_job(node, job, avail_nodes)
-                if status:
-                    for n in job.nodes_reserved:
-                        n = start_job(node, job, n)
-                        assert node.storage.register_node(n), f"Failed to update node {n}... Exiting."
-                    assert update_job(node, job), f"Updating job failed: {job}"
-        lag(config.scheduler_lag)
-
 
 if __name__ == "__main__":
+    node = get_node()
+    None if not node.is_head() else setup_head_daemon(node)
     register_node(node=node)
 
     if node.is_head():
         # This is a head node
         _logger.info("Starting head node service.")
-        mp.set_start_method('spawn')
+        from src.master.daemon import incoming_routine, scheduling_routine
 
         processes = [
-            Process(target=incoming_routine),
-            Process(target=scheduling_routine),
+            Process(target=incoming_routine, args=(node, )),
+            Process(target=scheduling_routine, args=(node, )),
         ]
-        for p in processes:
-            p.start()
-        #incoming_routine(node)
-        #scheduling_routine(node)
-        #lag(config.head_daemon_lag)
-        for p in processes:
-            p.join()
-
 
     elif node.is_compute():
         from src.compute.handler import handle_message
         # This is a compute node
         _logger.info("Starting child node service.")
+        from src.compute.daemon import incoming_routine, scheduling_routine, status_routine
 
-        head_sock = RequestSocket(timeout=config.request_timeout, hostname="0.0.0.0", port=config.rep_port)
-        head_sock.open(node.master_addr, config.req_port)
-        sock = ReplySocket(hostname="0.0.0.0", port=config.req_port)
-        sock.open()
-
-        while True:
-            _logger.debug("Waiting for message")
-            message = sock.receive()
-            _logger.debug(f"Received message: {message}")
-            response = handle_message(node, message)
-            _logger.debug(f"Handled message: {response}")
-            sock.send(response)
-            _logger.debug("Sent response.")
-
-        head_sock.close()
-        sock.close()
+        processes = [
+            Process(target=incoming_routine, args=(node, )),
+            Process(target=scheduling_routine, args=(node, )),
+            Process(target=status_routine, args=(node, )),
+        ]
 
     else:
         raise NotImplementedError(f"Server type not recognized. This should not have happened!")
+
+    # Start subprocesses
+    for p in processes:
+        p.start()
+
+    # Lock on subprocesses
+    for p in processes:
+        p.join()
