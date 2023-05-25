@@ -7,7 +7,7 @@ from multiprocessing import Process
 from src.commons import lag
 from src.mw.socket import RequestSocket, ReplySocket
 from src.response import Response
-from src.node import get_node, setup_head_daemon, register_node
+from src.node import get_node, setup_head_daemon, setup_compute_daemon, register_node
 from src.configuration import config
 
 import logging
@@ -18,7 +18,7 @@ _logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     node = get_node()
-    None if not node.is_head() else setup_head_daemon(node)
+    setup_compute_daemon(node) if not node.is_head() else setup_head_daemon(node)
     register_node(node=node)
 
     if node.is_head():

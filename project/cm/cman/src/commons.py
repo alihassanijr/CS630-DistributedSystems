@@ -1,5 +1,6 @@
 import logging
 from time import sleep
+import os
 
 from .environment import get_head_addr
 from .mw.socket import RequestSocket
@@ -35,3 +36,9 @@ def send_message_to_node(node, message, verbose=False, timeout=config.request_ti
 
 def lag(ms):
     sleep(ms / 1000)
+
+def get_uid():
+    return os.getuid()
+
+def get_workdir():
+    return os.getcwd()

@@ -8,12 +8,13 @@ from .base import CMObject
 
 
 class JobStatus(Enum):
-    Created = 0
-    Pending = 1
-    Started = 2
-    Running = 3
+    Created   = 0
+    Pending   = 1
+    Started   = 2
+    Running   = 3
     Completed = 4
-    Killed = 5
+    Killed    = 5
+    Unknown   = 6
 
 
 class Job(CMObject):
@@ -22,6 +23,8 @@ class Job(CMObject):
                  job_name,
                  uid,
                  command,
+                 working_dir,
+                 env,
                  resource_req=None,
                  time_limit=-1,
                  nodes_reserved=None,
@@ -31,8 +34,10 @@ class Job(CMObject):
         self.job_name       = job_name
         self.uid            = uid
         self.command        = command
+        self.env            = env
+        self.working_dir    = working_dir
         self.resource_req   = resource_req
-        self.time_limit     = time_limit
+        self.time_limit     = None if time_limit is None or time_limit < 1 else time_limit
         self.nodes_reserved = nodes_reserved
         self.status         = status
 
@@ -51,6 +56,7 @@ class Job(CMObject):
             f"job_id={self.job_id}, " + \
             f"job_name={self.job_name}, " + \
             f"uid={self.uid}, " + \
+            f"working_dir={self.working_dir}, " + \
             f"command={self.command}, " + \
             f"time_limit={self.time_limit}, " + \
             f"nodes_reserved={self.nodes_reserved}, " + \
@@ -71,3 +77,15 @@ class Job(CMObject):
     def start(self):
         self.status = JobStatus.Started
         return self
+
+
+class JobProcess(CMObject):
+    def __init__(self, pid, status):
+        self.pid = pid
+        self.status = status
+
+    def __str__(self):
+        return f"Process(" + \
+            f"pid={self.pid}, " + \
+            f"status={self.status}" + \
+            f")"

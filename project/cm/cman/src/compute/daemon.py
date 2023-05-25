@@ -33,12 +33,22 @@ def scheduling_routine(node: Node):
     _logger.info("Starting scheduler process on compute node")
     while True:
         _logger.debug("Checking scheduler")
-        # TODO: fixme
-        lag(config.scheduler_lag * 100) # TODO: correct me
+        node.queue = node.queue.load()
+        start_failures = node.queue.run_queued_jobs()
+        if len(start_failures) > 0:
+            _logger.info(f"Failed to start the following jobs: {start_failures}.")
+        lag(config.scheduler_lag)
 
 
 def status_routine(node: Node):
     _logger.info("Starting status process on compute node")
     while True:
         _logger.debug("Checking status")
+        node.queue = node.queue.load()
+        procs = node.queue.check_running_jobs()
+        for job_id, proc_list in procs.items():
+            _logger.info(f"Job {job_id} : {proc_list}")
+        overtime_jobs = node.queue.get_overtime_jobs()
+        if len(overtime_jobs) > 0:
+            _logger.info(f"Overtime jobs: {overtime_jobs}.")
         lag(config.status_lag)

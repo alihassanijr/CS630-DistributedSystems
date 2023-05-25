@@ -15,13 +15,13 @@ from src.resource import ResourceType, ResourceRequirement
 from src.message import Message
 from src.node import get_node
 from src.job import Job
-from src.commons import send_message_to_head
-from src.configuration import load_configuration
+from src.commons import send_message_to_head, get_uid, get_workdir
+from src.configuration import ENV, config
 
 from time import sleep
 
-config = load_configuration()
 node = get_node()
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='CM job execution tool')
@@ -35,8 +35,6 @@ def get_args():
     args = parser.parse_args()
     return args
 
-def get_uid():
-    return os.getuid()
 
 def create_job(job):
     msg = Message(
@@ -44,12 +42,13 @@ def create_job(job):
         action=Action.AssignJobId,
         response=None,
         content=job)
-    resp, success = send_message_to_head(msg)
+    resp, success = send_message_to_head(msg, verbose=True)
     if success and resp is not None and resp.response == Response.AssignJobIdSuccessful:
         return resp.content
     else:
         details = "Could not contact head daemon successfully." if not success else f"Head daemon responded with {resp}"
         raise RuntimeError(f"Failed to assign job id! " + details)
+
 
 def setup_job(args):
     n_nodes         = args.nodes             or config.default_n_nodes
@@ -58,12 +57,26 @@ def setup_job(args):
     mem_per_node    = args.mem_per_node      or config.default_mem_per_node
     time_limit      = args.time_limit        or config.default_time_limit
     command         = " ".join(args.command)
+    working_dir     = get_workdir()
+    env             = dict(ENV)
 
     job_name = args.alias or command.split(' ')[0]
     uid      = get_uid()
-    resource_req = ResourceRequirement(n_nodes=n_nodes, n_cpus_per_node=n_cpus_per_node, mem_per_node=mem_per_node)
+    resource_req = ResourceRequirement(
+        n_nodes=n_nodes,
+        n_per_node=n_procs,
+        n_cpus_per_node=n_cpus_per_node,
+        mem_per_node=mem_per_node)
 
-    job = Job(job_id=None, job_name=job_name, uid=uid, command=command, resource_req=resource_req, time_limit=time_limit)
+    job = Job(
+        job_id=None,
+        job_name=job_name,
+        uid=uid,
+        command=command,
+        working_dir=working_dir,
+        env=env,
+        resource_req=resource_req,
+        time_limit=time_limit)
     return create_job(job).merge(job)
 
 if __name__ == "__main__":

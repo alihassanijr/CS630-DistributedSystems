@@ -11,6 +11,7 @@ from .response import Response
 from .status import Status, Reason
 from .configuration import config
 from .commons import send_message_to_head, send_message_to_node
+from .queue import Queue
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 _logger = logging.getLogger(__name__)
@@ -125,7 +126,8 @@ class Node(CMObject):
         if requesting_node.node_id == self.node_id:
             self.status = Status.InUse
             _logger.info(f"Started job: {job}")
-            # TODO: start job
+            assert hasattr(self, "queue"), f"Node object not initialized correctly, could not find queue!"
+            self.queue.add(job)
             return self
         else:
             status, self = request_start_job(requesting_node, self, job)
@@ -154,6 +156,13 @@ def get_node():
     _logger.info(f"Node of type {node.node_type} starting...")
     node.master_addr = get_head_addr()
     return node
+
+
+def setup_compute_daemon(node):
+    if node.is_head():
+        return False
+    node.queue = Queue(node_id=node.node_id)
+    return True
 
 
 def setup_head_daemon(node):

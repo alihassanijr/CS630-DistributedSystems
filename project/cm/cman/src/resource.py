@@ -46,14 +46,16 @@ class Resource(CMObject):
 
 
 class ResourceRequirement(CMObject):
-    def __init__(self, n_nodes, n_cpus_per_node, mem_per_node):
+    def __init__(self, n_nodes, n_per_node, n_cpus_per_node, mem_per_node):
         self.n_nodes = n_nodes
+        self.n_per_node = n_per_node
         self.n_cpus_per_node = n_cpus_per_node
         self.mem_per_node = mem_per_node
 
     def __str__(self):
         return f"ResourceRequirement(" + \
             f"n_nodes={self.n_nodes}, " + \
+            f"n_per_node={self.n_per_node}, " + \
             f"n_cpus_per_node={self.n_cpus_per_node}, " + \
             f"mem_per_node={self.mem_per_node}, " + \
             f"total_cpus={self.n_cpus_per_node * self.n_nodes}, " + \

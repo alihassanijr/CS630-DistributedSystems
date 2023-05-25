@@ -3,3 +3,4 @@ pymongo
 mongoengine
 pyyaml
 rich
+psutil
