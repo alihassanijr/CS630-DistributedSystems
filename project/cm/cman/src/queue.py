@@ -84,14 +84,6 @@ class Queue(CMObject):
     def __str__(self):
         return f"Queue(jobs={self.jobs})"
 
-    def add(self, job: Job):
-        self = self.load()
-        assert job.job_id not in self.jobs and job.job_id not in self.pids, f"Job {job.job_id} is already running in this queue."
-        self.jobs[job.job_id] = job
-        self.pids[job.job_id] = []
-        self.flush()
-        return self
-
     def flush(self):
         with open(self._context_path, 'wb') as fh:
             pickle.dump({"jobs": self.jobs, "pids": self.pids, "start_times": self.start_times}, fh)
@@ -105,11 +97,45 @@ class Queue(CMObject):
             self.start_times = inst["start_times"]
         return self
 
+    def add(self, job: Job):
+        """
+        Flushes changes
+        """
+        assert job.job_id not in self.jobs and job.job_id not in self.pids, f"Job {job.job_id} is already running in this queue."
+        self.jobs[job.job_id] = job
+        self.pids[job.job_id] = []
+        self.flush()
+        return self
+
+    def remove_by_id(self, job_id):
+        """
+        Flushes changes
+        """
+        if job_id in self.jobs:
+            del self.jobs[job_id]
+        if job_id in self.pids:
+            del self.pids[job_id]
+        if job_id in self.start_times:
+            del self.start_times[job_id]
+        self.flush()
+        return self
+
+    def remove(self, job: Job):
+        """
+        Flushes changes
+        """
+        return self.remove_by_id(job.job_id)
+
     def start(self, job: Job):
+        """
+        Flushes changes
+        """
         return self.start_by_id(job.job_id)
 
     def start_by_id(self, job_id: int):
-        self = self.load()
+        """
+        Flushes changes
+        """
         if job_id in self.pids and job_id in self.jobs and len(self.pids[job_id]) == 0 and job_id not in self.start_times:
             self.start_times[job_id] = []
             n_procs = self.jobs[job_id].resource_req.n_per_node
@@ -126,7 +152,6 @@ class Queue(CMObject):
         return False
 
     def get_unstarted_jobs(self):
-        self = self.load()
         job_ids = []
         for job_id in self.jobs.keys():
             if job_id not in self.pids or len(self.pids[job_id]) == 0:
@@ -134,15 +159,16 @@ class Queue(CMObject):
         return job_ids
 
     def run_queued_jobs(self):
-        failures = []
+        failures, started_jobs = [], []
         for i in self.get_unstarted_jobs():
             stat = self.start_by_id(i)
             if not stat:
                 failures.append(i)
-        return failures
+            else:
+                started_jobs.append(self.jobs[i])
+        return failures, started_jobs
 
     def get_running_jobs(self):
-        self = self.load()
         job_ids = []
         for job_id in self.jobs.keys():
             if job_id in self.pids and len(self.pids[job_id]) > 0:
@@ -150,7 +176,6 @@ class Queue(CMObject):
         return job_ids
 
     def get_overtime_jobs(self):
-        self = self.load()
         job_ids = []
         for job_id in self.jobs.keys():
             if job_id in self.pids and len(self.pids[job_id]) > 0:
@@ -164,25 +189,67 @@ class Queue(CMObject):
                         continue
         return job_ids
 
+    def get_job_status(self, i):
+        status_list = []
+        if i not in self.pids:
+            return status_list
+        for pid in self.pids[i]:
+            status = JobStatus.Unknown
+            try:
+                if pid is not None and type(pid) is int and psutil.pid_exists(pid):
+                    proc = psutil.Process(pid=pid).as_dict()
+                    if proc["status"] in PSUTIL_RUNNING:
+                        status = JobStatus.Running
+                    elif proc["status"] in PSUTIL_KILLED:
+                        status = JobStatus.Killed
+                    elif proc["status"] in PSUTIL_COMPLETED:
+                        status = JobStatus.Completed
+            except:
+                pass
+            status_list.append(JobProcess(pid=pid, status=status))
+        return status_list
+
     def check_running_jobs(self):
         status_dict = {}
         for i in self.get_running_jobs():
-            status_list = []
-            for pid in self.pids[i]:
-                status = JobStatus.Unknown
-                try:
-                    if pid is not None and type(pid) is int and psutil.pid_exists(pid):
-                        proc = psutil.Process(pid=pid).as_dict()
-                        if proc["status"] in PSUTIL_RUNNING:
-                            status = JobStatus.Running
-                        elif proc["status"] in PSUTIL_KILLED:
-                            status = JobStatus.Killed
-                        elif proc["status"] in PSUTIL_COMPLETED:
-                            status = JobStatus.Completed
-                except:
-                    pass
-                status_list.append(JobProcess(pid=pid, status=status))
-            status_dict[i] = status_list
+            status_dict[i] = self.get_job_status(i)
         return status_dict
 
+    def get_completed_jobs(self):
+        completed = []
+        for i in self.get_running_jobs():
+            statuses = self.get_job_status(i)
+            complete = True
+            for jp in statuses:
+                if jp.status not in [JobStatus.Killed, JobStatus.Completed]:
+                    complete = False
+                    break
+            if complete:
+                completed.append(i)
+        return completed
+
+    def clear_completed_jobs(self):
+        """
+        Flushes changes
+        """
+        completed_jobs = self.get_completed_jobs()
+        jobs = []
+        for j in completed_jobs:
+            jobs.append(self.jobs[j])
+            self.remove_by_id(j)
+        return jobs
+
+    def kill_overtime_jobs(self):
+        overtime_jobs = self.get_overtime_jobs()
+        try:
+            for j in overtime_jobs:
+                for pid in self.pids[j]:
+                    parent = psutil.Process(pid)
+                    for child in parent.children(recursive=True):
+                        child.kill()
+                    parent.kill()
+            return True
+        except:
+            pass
+        return False
 

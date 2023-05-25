@@ -43,6 +43,12 @@ class Storage:
         except:
             return None
 
+    def fetch_node(self, node_id):
+        try:
+            return schema_to_node(Node.objects(node_id__exact=node_id).first())
+        except:
+            return None
+
     def create_job(self, job: JobClass) -> bool:
         job_inst = job_to_schema(job)
         if job_inst:
@@ -51,17 +57,26 @@ class Storage:
         return schema_to_job(job_inst)
 
     def update_job(self, job: JobClass) -> bool:
-        existing_job = Job.objects(job_id__exact=job.job_id)
-        if existing_job is not None and hasattr(existing_job, "first"):
-            existing_job = existing_job.first()
-            if existing_job is not None and hasattr(existing_job, "update"):
-                existing_job.update(**job_to_dict(job, for_mongo=True))
-                return schema_to_job(existing_job)
+        try:
+            existing_job = Job.objects(job_id__exact=job.job_id)
+            if existing_job is not None and hasattr(existing_job, "first"):
+                existing_job = existing_job.first()
+                if existing_job is not None and hasattr(existing_job, "update"):
+                    existing_job.update(**job_to_dict(job, for_mongo=True))
+                    return schema_to_job(existing_job)
+        except:
+            pass
         return None
 
     def get_jobs(self):
         try:
             return [schema_to_job(j) for j in Job.objects.select_related()]
+        except:
+            return None
+
+    def get_job(self, job):
+        try:
+            return schema_to_job(Job.objects(job_id__exact=job.job_id).first().select_related())
         except:
             return None
 

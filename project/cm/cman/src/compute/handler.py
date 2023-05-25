@@ -49,10 +49,29 @@ def start_job(current_node: Node, message: Message):
         content=None)
 
 
+def free_resources(current_node: Node, message: Message):
+    try:
+        result = current_node.end_job(current_node, message.content)
+        if result:
+            return Message(
+                node_id=current_node.node_id,
+                action=Action.NoAction,
+                response=Response.ResourcesFreed,
+                content=None)
+    except:
+        pass
+    return Message(
+        node_id=current_node.node_id,
+        action=Action.NoAction,
+        response=Response.ResourcesNotFreed,
+        content=None)
+
+
 ACTION_TO_HANDLER = {
     Action.GetNodeStatus: get_status,
-    Action.HostJob: host_job,
-    Action.StartJob: start_job,
+    Action.HostJob:       host_job,
+    Action.StartJob:      start_job,
+    Action.FreeResources: free_resources,
 }
 
 

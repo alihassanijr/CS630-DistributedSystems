@@ -28,3 +28,12 @@ class Response(Enum):
 
     JobStartSuccessful          = 13
     JobStartUnsuccessful        = 14
+
+    JobStartRecorded            = 15
+    JobStartNotRecorded         = 16
+
+    JobEndRecorded              = 17
+    JobEndNotRecorded           = 18
+
+    ResourcesFreed              = 19
+    ResourcesNotFreed           = 20

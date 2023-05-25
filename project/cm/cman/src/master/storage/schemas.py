@@ -42,6 +42,7 @@ class Job(Document):
     command        = StringField(required=True)
     time_limit     = IntField()
     nodes_reserved = ListField(ReferenceField(Node))
+    nodes_running  = ListField(ReferenceField(Node))
     resource_req   = EmbeddedDocumentField(ResourceRequirement, required=True)
     status         = EnumField(JobStatus, required=True)
 
@@ -89,11 +90,16 @@ def job_to_dict(job, for_mongo=False):
             job_dict["job_id"] = job.job_id
         if hasattr(job, "time_limit"):
             job_dict["time_limit"] = job.time_limit
-        if hasattr(job, "nodes_reserved") and job.job_id is not None:
+        if hasattr(job, "nodes_reserved") and job.job_id is not None and job.nodes_reserved is not None:
             if for_mongo:
                 job_dict["nodes_reserved"] = [Node.objects(node_id__exact=x.node_id).first().to_dbref() for x in job.nodes_reserved]
             else:
                 job_dict["nodes_reserved"] = job.nodes_reserved
+        if hasattr(job, "nodes_running") and job.job_id is not None and job.nodes_running is not None:
+            if for_mongo:
+                job_dict["nodes_running"] = [Node.objects(node_id__exact=x.node_id).first().to_dbref() for x in job.nodes_running]
+            else:
+                job_dict["nodes_running"] = job.nodes_running
 
         return job_dict
     return None
@@ -141,6 +147,7 @@ def schema_to_job(job_schema: Job) -> JobClass:
             mem_per_node=job_schema.resource_req.mem_per_node
         ),
         time_limit=job_schema.time_limit,
-        nodes_reserved=[schema_to_node(x) for x in job_schema.nodes_reserved]
+        nodes_reserved=[schema_to_node(x) for x in job_schema.nodes_reserved],
+        nodes_running=[schema_to_node(x) for x in job_schema.nodes_running]
     )
 

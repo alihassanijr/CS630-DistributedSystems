@@ -13,7 +13,7 @@ class Configuration(CMObject):
     def __init__(self):
         self.head_daemon_lag       = 5 # milliseconds
         self.scheduler_lag         = 1000 # milliseconds
-        self.status_lag            = 10000 # milliseconds
+        self.status_lag            = 5000 # milliseconds
 
         self.register_retries      = 10
         self.register_retry_wait   = 5

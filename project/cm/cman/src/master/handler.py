@@ -8,7 +8,7 @@ from ..job import Job
 from ..user import User
 from ..status import Status
 from .register import register_node
-from .job import create_job_msg, get_alive_jobs_msg
+from .job import create_job_msg, get_alive_jobs_msg, update_job_start_msg, update_job_end_msg
 from .fetch import fetch_nodes
 from .adduser import adduser
 
@@ -53,6 +53,40 @@ def assign_job_id_handler(current_node: Node, message: Message):
         content=f"Expected type Job, got {type(message.content)}")
 
 
+def report_job_start_handler(current_node: Node, message: Message):
+    if type(message.content) is Job:
+        incoming_node = current_node.storage.fetch_node(message.node_id)
+        if type(incoming_node) is not Node:
+            return Message(
+                node_id=current_node.node_id,
+                action=Action.NoAction,
+                response=Response.UnhandledRequest,
+                content=f"Unable to find reference to incoming node in storage: {message.node_id}.")
+        return update_job_start_msg(current_node=current_node, job=message.content, incoming_node=incoming_node)
+    return Message(
+        node_id=current_node.node_id,
+        action=Action.NoAction,
+        response=Response.UnhandledRequest,
+        content=f"Expected type Job, got {type(message.content)}")
+
+
+def report_job_end_handler(current_node: Node, message: Message):
+    if type(message.content) is Job:
+        incoming_node = current_node.storage.fetch_node(message.node_id)
+        if type(incoming_node) is not Node:
+            return Message(
+                node_id=current_node.node_id,
+                action=Action.NoAction,
+                response=Response.UnhandledRequest,
+                content=f"Unable to find reference to incoming node in storage: {message.node_id}.")
+        return update_job_end_msg(current_node=current_node, job=message.content, incoming_node=incoming_node)
+    return Message(
+        node_id=current_node.node_id,
+        action=Action.NoAction,
+        response=Response.UnhandledRequest,
+        content=f"Expected type Job, got {type(message.content)}")
+
+
 def create_user_handler(current_node: Node, message: Message):
     if type(message.content) is User:
         return adduser(current_node=current_node, user=message.content)
@@ -64,12 +98,14 @@ def create_user_handler(current_node: Node, message: Message):
 
 
 ACTION_TO_HANDLER = {
-    Action.GetNodeStatus: get_status,
-    Action.RegisterNode:  node_register_handler,
-    Action.FetchNodes:    fetch_nodes_handler,
-    Action.FetchJobs:     fetch_jobs_handler,
-    Action.CreateUser:    create_user_handler,
-    Action.AssignJobId:   assign_job_id_handler,
+    Action.GetNodeStatus:  get_status,
+    Action.RegisterNode:   node_register_handler,
+    Action.FetchNodes:     fetch_nodes_handler,
+    Action.FetchJobs:      fetch_jobs_handler,
+    Action.CreateUser:     create_user_handler,
+    Action.AssignJobId:    assign_job_id_handler,
+    Action.ReportJobStart: report_job_start_handler,
+    Action.ReportJobEnd:   report_job_end_handler,
 }
 
 

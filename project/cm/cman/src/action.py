@@ -18,7 +18,10 @@ class Action(Enum):
     AssignJobId     = 9
     HostJob         = 10
     StartJob        = 11
-    FetchJobs      = 12
+    FetchJobs       = 12
+    ReportJobStart  = 13
+    ReportJobEnd    = 14
+    FreeResources   = 15
 
 
 ACTION_MAP = {

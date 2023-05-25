@@ -28,6 +28,7 @@ class Job(CMObject):
                  resource_req=None,
                  time_limit=-1,
                  nodes_reserved=None,
+                 nodes_running=None,
                  status=JobStatus.Pending
         ):
         self.job_id         = job_id
@@ -39,6 +40,7 @@ class Job(CMObject):
         self.resource_req   = resource_req
         self.time_limit     = None if time_limit is None or time_limit < 1 else time_limit
         self.nodes_reserved = nodes_reserved
+        self.nodes_running  = nodes_running
         self.status         = status
 
     def merge(self, new_job):

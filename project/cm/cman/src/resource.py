@@ -44,6 +44,10 @@ class Resource(CMObject):
             return True
         return False
 
+    def kick(self, user_id):
+        self.users = [u for u in self.users if u[0] != user_id]
+        return self
+
 
 class ResourceRequirement(CMObject):
     def __init__(self, n_nodes, n_per_node, n_cpus_per_node, mem_per_node):

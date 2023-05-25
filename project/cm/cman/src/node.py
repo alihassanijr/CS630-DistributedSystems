@@ -69,6 +69,11 @@ def host_job(node, job):
         return True, node
     return False, node
 
+def kick_job(node, job_id):
+    for r in node.resources:
+        r.kick(job_id)
+    return True
+
 class Node(CMObject):
     def __init__(self, node_id, node_type, resources):
         self.node_id   = node_id
@@ -127,12 +132,22 @@ class Node(CMObject):
             self.status = Status.InUse
             _logger.info(f"Started job: {job}")
             assert hasattr(self, "queue"), f"Node object not initialized correctly, could not find queue!"
+            self.queue = self.queue.load()
             self.queue.add(job)
             return self
         else:
             status, self = request_start_job(requesting_node, self, job)
             if status:
                 return self
+        return None
+
+    def end_job(self, requesting_node, job_id):
+        if requesting_node.node_id == self.node_id:
+            kick_job(self, job_id)
+            _logger.info(f"Freed resources from job: {job_id}")
+            return self
+        else:
+            raise NotImplementedError(f"Freeing resources must be called from self!")
         return None
 
     def update(self, requesting_node):

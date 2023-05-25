@@ -1,6 +1,6 @@
 head_daemon_lag: 5 # milliseconds
 scheduler_lag: 1000 # milliseconds
-status_lag: 10000 # milliseconds
+status_lag: 5000 # milliseconds
 
 register_retries: 10
 register_retry_wait: 5

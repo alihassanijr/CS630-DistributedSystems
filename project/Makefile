@@ -8,6 +8,8 @@ clean:
 	@echo "Cleaning up"
 	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
 	rm -rf drive/db/*
+	rm -rf drive/*/cmlogs
+	rm -rf drive/*/**/cmlogs
 
 run:
 	docker compose up --scale computenode=4 --build

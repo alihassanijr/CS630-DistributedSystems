@@ -5,7 +5,7 @@ import os
 import logging
 from typing import Any
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.WARNING)
 _logger = logging.getLogger(__name__)
 
 from src.mw.socket import RequestSocket, ReplySocket
@@ -42,7 +42,7 @@ def create_job(job):
         action=Action.AssignJobId,
         response=None,
         content=job)
-    resp, success = send_message_to_head(msg, verbose=True)
+    resp, success = send_message_to_head(msg)
     if success and resp is not None and resp.response == Response.AssignJobIdSuccessful:
         return resp.content
     else:
@@ -84,7 +84,8 @@ if __name__ == "__main__":
 
     if node.is_head():
         job = setup_job(args)
-        print(job)
+        if type(job) is Job:
+            print(f"Job {job.job_id} started, pending resource allocation.")
 
     elif node.is_compute():
         raise NotImplementedError(f"cmrun should only be called from head node.")
