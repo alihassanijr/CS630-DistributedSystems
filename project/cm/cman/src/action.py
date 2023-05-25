@@ -22,6 +22,7 @@ class Action(Enum):
     ReportJobStart  = 13
     ReportJobEnd    = 14
     FreeResources   = 15
+    KillJob         = 16
 
 
 ACTION_MAP = {

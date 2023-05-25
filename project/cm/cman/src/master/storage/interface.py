@@ -75,8 +75,11 @@ class Storage:
             return None
 
     def get_job(self, job):
+        return self.get_job_by_id(job.job_id)
+
+    def get_job_by_id(self, job_id):
         try:
-            return schema_to_job(Job.objects(job_id__exact=job.job_id).first().select_related())
+            return schema_to_job(Job.objects(job_id__exact=job_id).first().select_related())
         except:
             return None
 

@@ -4,7 +4,7 @@ from ..action import Action
 from ..response import Response
 from ..message import Message
 from ..node import Node
-from ..job import Job
+from ..job import Job, JobStatus
 from ..user import User
 from ..status import Status
 from .register import register_node
@@ -87,6 +87,32 @@ def report_job_end_handler(current_node: Node, message: Message):
         content=f"Expected type Job, got {type(message.content)}")
 
 
+def kill_job_handler(current_node: Node, message: Message):
+    try:
+        job = current_node.storage.get_job_by_id(message.content)
+        assert job is not None, f"Couldn't fetch job with id {message.content} from storage."
+        if job.status in [JobStatus.Completed, JobStatus.Killed]:
+            return Message(
+                node_id=current_node.node_id,
+                action=Action.NoAction,
+                response=Response.JobAlreadyDone,
+                content=None)
+        for node in job.nodes_running:
+            node.end_job(current_node, job.job_id)
+        return Message(
+            node_id=current_node.node_id,
+            action=Action.NoAction,
+            response=Response.KillSignalSent,
+            content=None)
+    except:
+        pass
+    return Message(
+        node_id=current_node.node_id,
+        action=Action.NoAction,
+        response=Response.UnhandledRequest,
+        content="Unable to send kill signal.")
+
+
 def create_user_handler(current_node: Node, message: Message):
     if type(message.content) is User:
         return adduser(current_node=current_node, user=message.content)
@@ -106,6 +132,7 @@ ACTION_TO_HANDLER = {
     Action.AssignJobId:    assign_job_id_handler,
     Action.ReportJobStart: report_job_start_handler,
     Action.ReportJobEnd:   report_job_end_handler,
+    Action.KillJob:        kill_job_handler,
 }
 
 

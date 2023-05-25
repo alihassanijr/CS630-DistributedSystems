@@ -143,11 +143,15 @@ class Node(CMObject):
 
     def end_job(self, requesting_node, job_id):
         if requesting_node.node_id == self.node_id:
+            assert hasattr(self, "queue"), f"Node object not initialized correctly, could not find queue!"
+            self.queue = self.queue.load()
+            self.queue.safe_kill_job(job_id)
+            self.queue.flush()
             kick_job(self, job_id)
             _logger.info(f"Freed resources from job: {job_id}")
             return self
         else:
-            raise NotImplementedError(f"Freeing resources must be called from self!")
+            assert request_end_job(requesting_node, self, job_id), f"Failed to kill job {job_id}."
         return None
 
     def update(self, requesting_node):
@@ -248,6 +252,18 @@ def request_start_job(requesting_node, node, job):
             _logger.info(f"Node started job successfully.")
             return True, response.content
     return False, node
+
+
+def request_end_job(requesting_node, node, job_id):
+    msg = Message(
+        node_id=requesting_node.node_id,
+        action=Action.FreeResources,
+        response=None,
+        content=job_id)
+    message, success = send_message_to_node(node, msg)
+    if success and message is not None and message.response == Response.ResourcesFreed:
+        return True
+    return False
 
 
 def generate_register_message(node):

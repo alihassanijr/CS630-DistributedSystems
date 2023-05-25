@@ -18,10 +18,8 @@ stop:
 	docker compose down
 
 exec-head:
-	docker compose exec headnode bash
-
-exec-compute:
-	docker compose exec computenode bash
+	@mkdir -p drive/home/${USER}
+	@docker compose exec -w /home/${USER} headnode bash
 
 quality:
 	@echo "Quality check"

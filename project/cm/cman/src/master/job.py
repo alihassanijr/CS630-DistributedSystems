@@ -107,7 +107,7 @@ def update_job_start_msg(
     return Message(
         node_id=current_node.node_id,
         action=Action.NoAction,
-        response=Response.JobEndNotRecorded,
+        response=Response.JobStartNotRecorded,
         content=f"Failed to update job to record end event from node.")
 
 

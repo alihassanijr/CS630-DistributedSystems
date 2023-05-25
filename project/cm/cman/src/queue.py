@@ -243,13 +243,21 @@ class Queue(CMObject):
         overtime_jobs = self.get_overtime_jobs()
         try:
             for j in overtime_jobs:
-                for pid in self.pids[j]:
-                    parent = psutil.Process(pid)
-                    for child in parent.children(recursive=True):
-                        child.kill()
-                    parent.kill()
+                self.kill_job(j)
             return True
         except:
             pass
         return False
+
+    def kill_job(self, j):
+        for pid in self.pids[j]:
+            parent = psutil.Process(pid)
+            for child in parent.children(recursive=True):
+                child.kill()
+            parent.kill()
+        return True
+
+    def safe_kill_job(self, j):
+        if j in self.jobs and j in self.pids:
+            self.kill_job(j)
 

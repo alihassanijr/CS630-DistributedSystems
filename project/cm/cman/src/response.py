@@ -37,3 +37,6 @@ class Response(Enum):
 
     ResourcesFreed              = 19
     ResourcesNotFreed           = 20
+
+    KillSignalSent              = 21
+    JobAlreadyDone              = 22
