@@ -70,6 +70,7 @@ class Queue(CMObject):
         self.node_id = node_id
         self.jobs = {}
         self.pids = {}
+        self.ranks = {}
         self.start_times = {}
         self.assign_context_path()
         self.flush()
@@ -86,7 +87,7 @@ class Queue(CMObject):
 
     def flush(self):
         with open(self._context_path, 'wb') as fh:
-            pickle.dump({"jobs": self.jobs, "pids": self.pids, "start_times": self.start_times}, fh)
+            pickle.dump({"jobs": self.jobs, "pids": self.pids, "ranks": self.ranks, "start_times": self.start_times}, fh)
         return self
 
     def load(self):
@@ -94,16 +95,18 @@ class Queue(CMObject):
             inst = pickle.load(fh)
             self.jobs = inst["jobs"]
             self.pids = inst["pids"]
+            self.ranks = inst["ranks"]
             self.start_times = inst["start_times"]
         return self
 
-    def add(self, job: Job):
+    def add(self, job: Job, node_rank: int):
         """
         Flushes changes
         """
         assert job.job_id not in self.jobs and job.job_id not in self.pids, f"Job {job.job_id} is already running in this queue."
         self.jobs[job.job_id] = job
         self.pids[job.job_id] = []
+        self.ranks[job.job_id] = node_rank
         self.flush()
         return self
 
@@ -115,6 +118,8 @@ class Queue(CMObject):
             del self.jobs[job_id]
         if job_id in self.pids:
             del self.pids[job_id]
+        if job_id in self.ranks:
+            del self.ranks[job_id]
         if job_id in self.start_times:
             del self.start_times[job_id]
         self.flush()
@@ -136,14 +141,18 @@ class Queue(CMObject):
         """
         Flushes changes
         """
-        if job_id in self.pids and job_id in self.jobs and len(self.pids[job_id]) == 0 and job_id not in self.start_times:
+        if job_id in self.pids and job_id in self.ranks and job_id in self.jobs and len(self.pids[job_id]) == 0 and \
+                job_id not in self.start_times:
             self.start_times[job_id] = []
             n_procs = self.jobs[job_id].resource_req.n_per_node
             cmd = self.jobs[job_id].command
             cwd = self.jobs[job_id].working_dir
             env = self.jobs[job_id].env
             uid = self.jobs[job_id].uid
+            node_rank = self.ranks[job_id]
+            env["CM_NODE_RANK"] = str(node_rank)
             for i in range(n_procs):
+                env["CM_PROC_RANK"] = str(i)
                 pid = start_process(self.node_id, i, uid, cwd, env, cmd)
                 self.pids[job_id].append(pid)
                 self.start_times[job_id].append(timestamp())

@@ -127,16 +127,16 @@ class Node(CMObject):
                 return self
         return None
 
-    def start_job(self, requesting_node, job):
+    def start_job(self, requesting_node, job, node_rank):
         if requesting_node.node_id == self.node_id:
             self.status = Status.InUse
             _logger.info(f"Started job: {job}")
             assert hasattr(self, "queue"), f"Node object not initialized correctly, could not find queue!"
             self.queue = self.queue.load()
-            self.queue.add(job)
+            self.queue.add(job, node_rank=node_rank)
             return self
         else:
-            status, self = request_start_job(requesting_node, self, job)
+            status, self = request_start_job(requesting_node, self, job, node_rank)
             if status:
                 return self
         return None
@@ -244,8 +244,8 @@ def request_host_job(requesting_node, node, job):
     return False, node
 
 
-def request_start_job(requesting_node, node, job):
-    response, succ = send_message_to_node(node, generate_start_job_message(requesting_node, job))
+def request_start_job(requesting_node, node, job, node_rank):
+    response, succ = send_message_to_node(node, generate_start_job_message(requesting_node, job, node_rank))
     if response is not None and succ:
         if hasattr(response, "response") and hasattr(response, "content") and \
                 response.response == Response.JobStartSuccessful and type(response.content) is Node:
@@ -290,9 +290,9 @@ def generate_host_message(requesting_node, job):
         content=job)
 
 
-def generate_start_job_message(requesting_node, job):
+def generate_start_job_message(requesting_node, job, node_rank):
     return Message(
         node_id=requesting_node.node_id,
         action=Action.StartJob,
         response=None,
-        content=job)
+        content=(job, node_rank))

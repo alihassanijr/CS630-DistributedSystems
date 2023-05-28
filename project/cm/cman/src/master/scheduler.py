@@ -57,8 +57,8 @@ def try_assign_job(current_node: Node, job: Job, avail_nodes: list):
     return True, job.update_nodes(reserved_nodes).start()
 
 
-def start_job(current_node: Node, job: Job, target_node: Node):
-    result = target_node.start_job(current_node, job)
+def start_job(current_node: Node, job: Job, target_node: Node, node_rank: int):
+    result = target_node.start_job(current_node, job, node_rank)
     if result is None or type(result) is not Node:
         raise RuntimeError(f"Nodes promised resources, but failed to deliver.")
     return result

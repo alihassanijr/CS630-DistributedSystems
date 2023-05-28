@@ -36,12 +36,14 @@ def host_job(current_node: Node, message: Message):
 
 
 def start_job(current_node: Node, message: Message):
-    if type(message.content) is Job:
+    if type(message.content) is tuple and len(message.content) == 2 and \
+            type(message.content[0]) is Job and type(message.content[1]) is int:
+        job, node_rank = message.content
         return Message(
             node_id=current_node.node_id,
             action=Action.NoAction,
             response=Response.JobStartSuccessful,
-            content=current_node.start_job(current_node, message.content))
+            content=current_node.start_job(current_node, job, node_rank=node_rank))
     return Message(
         node_id=current_node.node_id,
         action=Action.NoAction,
