@@ -45,8 +45,8 @@
 \begin{document}
 \title{A lightweight python based cluster and workload manager}
 
-%\titlenote{Produces the permission block, and copyright information}
-%\subtitle{Extended Abstract}
+%\titlenote{}
+\subtitle{CS 630 Distributed Systems Project Report}
 
 \author{Ali Hassani}
 
@@ -166,6 +166,14 @@ these sockets will be the basis for communication in the entire system.
 By default, the sockets are set up to serialize and transmit pickled python objects, and all communication is assumed to be
 \textbf{synchronous} with \textbf{fail-stop} semantics, meaning requests are time-bounded and timed out requests are handled as
 if the destination is offline.
+The time bound chosen is 100 milliseconds on our experimental setup, which was the lowest point over multiple bounds that
+resulted in no failures detected in the system. Values tried were 1 ms, 10 ms, 50 ms, 100 ms, 500 ms, and 1000 ms.
+All requests that were strictly between two nodes (typically compute and head) can be easily handled with a 10 ms time bound.
+However, requests that incur follow up requests to all compute nodes (4 in our experiments), for example checking the status of
+every node, rarely succeed with a 10 ms or even 50 ms time bound. However, 100 ms appears to be a relatively optimal choice.
+Under heavy workloads in our experimental setup, one or two compute nodes may fail to register with the head node due to the
+increased response time when all 4 compute nodes try to register at approximately the same time. They can however successfully
+retry and for the remaining period the system functions as expected.
 
 \subsubsection{Abstractions and structures}
 For ease of modification, extension, and reduced code replication, we introduce the following abstractions and structures into
@@ -384,6 +392,7 @@ stable enough for standard usage, and requires improvements in that regard.
 \section{Source code}
 \label{supp:sourcecode}
 The entire implementation is available in the following GitHub repository, under the \verb|project/| directory.
+
 \url{https://github.com/alihassanijr/CS630-DistributedSystems}.
 
 The only requirement for starting the service is Docker, docker-compose, GNU make.
@@ -392,9 +401,69 @@ Unix-based operating systems.
 
 \section{Configuration}
 \label{supp:configurations}
+The purpose of the configuration is to ensure a fixed set of defaults across nodes, and be easily readable by all CM-related
+processes. Defaults exist within a YAML file, which is read upon initializing any daemon, interface, or service in this work.
+The values are listed below.
+
+\begin{itemize}
+    \item \verb|scheduler_lag|: Scheduler repeat intervals. Default: 1 second.
+    \item \verb|status_lag|: Process monitor repeat intervals. Default: 5 seconds.
+
+    \item \verb|register_retires|: Number of times to try to re-register with the head node, if registration has filed (i.e. due
+        to timeout.) Default: 10.
+    \item \verb|register_retry_wait|: Number of seconds to wait before retrying registration. Default: 5 seconds.
+
+    \item \verb|daemon_port|: Default daemon port. All daemons listen to the same port number. Default: \verb|5001|.
+
+    \item \verb|num_cpus_per_child|: Number of CPU cores per compute node. Default: 2.
+    \item \verb|memory_per_child|: Amount of memory per compute node in megabytes. Default: 512.
+
+    \item \verb|num_cpus_per_head|: Number of CPU cores in head node. Default: 2.
+    \item \verb|memory_per_head|: Amount of memory in head node in megabytes. Default: 512.
+
+    \item \verb|request_timeout|: Default time bound for messages. Default: 100 milliseconds.
+
+    \item \verb|default_n_nodes|: Default number of nodes per job, if unspecified by client. Default: 1.
+    \item \verb|default_n_procs|: Default number of processes per node in jobs, if unspecified by client. Default: 1.
+    \item \verb|default_n_cpu_per_node|: Default number of CPU cores per node in jobs, if unspecified by client. Default: 1.
+    \item \verb|default_mem_per_node|: Default amount of memory (megabytes) per node in jobs, if unspecified by client. Default: 100.
+    \item \verb|default_time_limit|: Default job time limit in hours, if unspecified by client. Default: 0 = no limit.
+
+\end{itemize}
 
 \section{Actions}
 \label{supp:actions}
+Actions are a set of predefined values for daemons in order to handle requests. Each \verb|Message| passed in this system has an
+\verb|Action|.
+The list of defined actions is provided below:
+
+\begin{itemize}
+    \item \verb|NoAction|: (all) no action required. Typically the action in response messages.
+    \item \verb|RegisterNode|: (head only) tells head node to register the node in the message. Each compute node sends a message with this
+        action and its \verb|Node| instance in the body to head node during initialization.
+    \item \verb|FetchNodes|: (head only) return node information. Upon receiving this request, head node will fetch nodes from
+        the database, check their aliveness, and return a list of up to date \verb|Node| instances.
+    \item \verb|GetNodeStatus|: (all) receiving node will update its status (\verb|InUse| or \verb|Idle|) and respond with a clone of
+        its \verb|Node| instance.
+    \item \verb|FetchJobs|: (head only) upon receiving this request, head node will return all jobs that have not died or
+        completed (either running or pending).
+    \item \verb|AssignJobId|: (head only) upon receipt, head node will attempt to add the \verb|Job| instance in the message to
+        the database, and assign a unique job id to it, which will be in the response. Messages sent from \verb|cmrun| use this
+        action.
+    \item \verb|ReportJobStart|: (head only) upon receipt, head node will record the sending node as having started the job in
+        the message body. Once done, if all nodes assigned to the job have reported its start, head node will also change the
+        job status to \verb|Running| and update its record in the database.
+    \item \verb|ReportJobEnd|: (head only) opposite of \verb|ReportJobStart|; records the sending node as having
+        ended/killed the job in the message, and if all nodes assigned reported this, will change the job status and update its
+        record.
+    \item \verb|KillJob|: (head only) will send every node assigned to this job a message with \verb|FreeResources| action,
+        telling them to terminate the job. Upon termination, nodes will send \verb|ReportJobEnd| back to the head node.
+    \item \verb|FreeResources|: (compute only) will look up PIDs associated with the job in the message, and attempt to
+        terminate them.
+    \item \verb|HostJob|: (compute only) checks its available resources to see whether job in the message can be hosted on the
+        node.
+    \item \verb|StartJob|: (compute only) reserves resources requested by the job in the message, and queues it to be started.
+\end{itemize}
 
 
 \end{document}
