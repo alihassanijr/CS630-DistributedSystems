@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 
 def send_message(address, message, verbose=False, timeout=config.request_timeout):
     sock = RequestSocket(timeout=timeout, verbose=verbose)
-    sock.open(address, config.req_port)
+    sock.open(address, config.daemon_port)
     if verbose:
         _logger.info(f"Pinging {address} with message: {message}")
     if sock.send(message):

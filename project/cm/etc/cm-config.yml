@@ -1,22 +1,18 @@
-head_daemon_lag: 5 # milliseconds
-scheduler_lag: 1000 # milliseconds
-status_lag: 5000 # milliseconds
+scheduler_lag: 1000         # milliseconds
+status_lag: 5000            # milliseconds
 
-register_retries: 10
-register_retry_wait: 5
+register_retries: 10        # number of registration retries
+register_retry_wait: 5      # seconds
 
-req_port: 5001
-rep_port: 5002
+daemon_port: 5001           # port number
 
-num_cpus_per_child: 2
-memory_per_child: 512
+num_cpus_per_child: 2       # integer
+memory_per_child: 512       # integer
 
-num_cpus_per_head: 2
-memory_per_head: 512
+num_cpus_per_head: 2        # integer
+memory_per_head: 512        # integer
 
-request_timeout: 100
-heavy_request_timeout: 2000
-
+request_timeout: 100        # milliseconds
 
 default_n_nodes: 1
 default_n_procs: 1

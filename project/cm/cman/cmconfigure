@@ -8,11 +8,11 @@ from typing import Any
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.WARNING)
 _logger = logging.getLogger(__name__)
 
-from src.mw.socket import RequestSocket, ReplySocket
 from src.action import Action, get_action
 from src.response import Response
 from src.message import Message
 from src.node import get_node
+from src.commons import send_message_to_head
 from src.user import User
 from src.configuration import load_configuration
 
@@ -61,19 +61,14 @@ if __name__ == "__main__":
     if node.is_head():
         action = get_action(entity=args.entity, action=args.action)
         content = get_content(action=action, command=args.command)
-        head_sock = RequestSocket(timeout=config.request_timeout, hostname="0.0.0.0", port=config.rep_port)
-        head_sock.open(node.master_addr, config.req_port)
 
         msg = Message(
             node_id=node.node_id,
             action=action,
             response=None,
             content=content)
-        _logger.debug("Fetching node info")
-        head_sock.send(msg)
-        _logger.debug("Waiting for response")
-        message = head_sock.receive()
-        _logger.debug(f"Child received message: {message}")
+
+        message, success = send_message_to_head(msg)
         print(message)
 
     elif node.is_compute():

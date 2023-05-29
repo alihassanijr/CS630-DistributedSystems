@@ -6,7 +6,6 @@ from ..message import Message
 from ..status import Status
 from ..node import Node
 from ..job import Job
-from ..mw.socket import RequestSocket
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)

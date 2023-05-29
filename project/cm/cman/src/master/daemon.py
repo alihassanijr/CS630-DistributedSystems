@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 
 def incoming_routine(node: Node):
     _logger.info("Starting message service")
-    sock = ReplySocket(hostname="0.0.0.0", port=config.req_port)
+    sock = ReplySocket(hostname="0.0.0.0", port=config.daemon_port)
     sock.open()
     while True:
         _logger.info("Checking for messages")

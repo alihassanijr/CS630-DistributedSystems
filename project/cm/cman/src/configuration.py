@@ -11,24 +11,21 @@ from .base import CMObject
 
 class Configuration(CMObject):
     def __init__(self):
-        self.head_daemon_lag       = 5 # milliseconds
-        self.scheduler_lag         = 1000 # milliseconds
-        self.status_lag            = 5000 # milliseconds
+        self.scheduler_lag           = 1000 # milliseconds
+        self.status_lag              = 5000 # milliseconds
 
-        self.register_retries      = 10
-        self.register_retry_wait   = 5
+        self.register_retries        = 10
+        self.register_retry_wait     = 5    # seconds
 
-        self.req_port              = 5001
-        self.rep_port              = 5002
+        self.daemon_port             = 5001
 
-        self.num_cpus_per_child    = 2
-        self.memory_per_child      = 512
+        self.num_cpus_per_child      = 2
+        self.memory_per_child        = 512
 
-        self.num_cpus_per_head     = 2
-        self.memory_per_head       = 512
+        self.num_cpus_per_head       = 2
+        self.memory_per_head         = 512
 
-        self.request_timeout       = 100
-        self.heavy_request_timeout = 2000
+        self.request_timeout         = 100
 
         self.default_n_nodes         = 1
         self.default_n_procs         = 1

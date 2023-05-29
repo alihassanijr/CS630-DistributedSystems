@@ -5,8 +5,6 @@ import multiprocessing as mp
 from multiprocessing import Process
 
 from src.commons import lag
-from src.mw.socket import RequestSocket, ReplySocket
-from src.response import Response
 from src.node import get_node, setup_head_daemon, setup_compute_daemon, register_node
 from src.configuration import config
 
