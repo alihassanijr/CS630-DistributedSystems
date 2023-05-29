@@ -48,7 +48,7 @@
 %\titlenote{}
 \subtitle{CS 630 Distributed Systems Project Report}
 
-\author{Ali Hassani}
+\author{Ali Hassani\\alih@uoregon.edu}
 
 % The default list of authors is too long for headers}
 \renewcommand{\shortauthors}{Hassani}
@@ -104,24 +104,23 @@ scheduling the use of resources among multiple clients, and can also be used to 
 
 \section{Background}
 
-Cluster management software is typically installed on all of the networked computers, or \textit{compute nodes}, 
-and one or more computers manage, organize, and control the rest via network communications made through the cluster manager, 
-which are referred to as \textit{head nodes}.
+As mentioned, cluster management software is typically installed on all of the networked computers, or \textit{compute nodes}. 
+It is also a typical assumption that one or more computers manage, organize, and control compute nodes, and provide interfaces
+to clients who wish to use the cluster of compute nodes. Such nodes referred to as \textit{head nodes}, where the cluster
+management software is also deployed.
 Cluster management software relies on a workload management service or module such as SLURM~\cite{yoo2003slurm}, which provides 
-an interface for users in order to allow them to request resources, and schedule their jobs accordingly.
+the user interface for clients in order to allow them to request resources, and schedule their jobs accordingly.
+While the cluster management software keeps track of all nodes, their health status, and so on, it also passes their
+information, such as IP addresses, resource availability, and the like, to the workload manager.
+Together, the cluster management software and workload manager run persistent monitoring and messaging processes in order to
+maintain a unified compute cluster that serves the purpose of maximizing the clients' ability to complete their computations in
+a timely manner. 
 
-While the cluster management software keeps track of all nodes, their health status, and so on, it also passes their IP 
-addresses to the workload manager.
-The workload manager, in this case SLURM, runs daemons, which are processes that start automatically after 
-the operating system boots and continue to run in background, on head and compute nodes.
-On compute nodes, the daemon is responsible for reporting node resource availability, running jobs, and other relevant
-information to the head node.
-On the head node, controller daemons communicate with communicate with compute nodes, which are exposed via their local IP 
-address.
+In this work, our approach is to create a single lightweight software component with minimal dependencies that can coordinate
+and create such an environment, and is deployable to most computers through the use of containerization tools such as
+Docker~\cite{merkel2014docker}. Through using docker, our approach can simulate separate compute and head nodes even with
+different operating systems, and allow clients to design and run distributed jobs.
 
-Users then log into head nodes, and use the SLURM interface (commands such as `scontrol`, `sinfo`, `srun`, `sbatch`) to check
-available nodes and resources, their running jobs, and submit new jobs.
-The interface is responsible for communicating with the daemon to schedule jobs and report information.
 
 \section{Methodology}
 
@@ -341,6 +340,14 @@ A flowchart of the steps taken in the workload manager is presented in \cref{fig
     \includegraphics[width=0.475\textwidth]{figures/wlm.pdf}
     \caption{
         \textbf{A flowchart of the workload manager.}
+        Pending jobs are held in a FIFO queue, and upon the removal of every job from the queue, the workload manager attempts
+        to reserve nodes for the given job. It starts by sending messages to all available nodes, along with the job's resource
+        requirements, such as number of CPU cores and amount of memory. Compute nodes simply respond whether or not resources
+        are available. If in the end, more nodes than required by the job are available, as many as required by the job are
+        reserved and the job instance is transmitted to said nodes, which will then proceed to start the processes.
+        Reserved nodes will remain in communication with the workload manager on the head node, reporting the status of the
+        running processes, and when and if they stop, or go over the time limit.
+        If the workload manager fails to schedule the input job, it simply adds it to the end of the queue.
     }
     \label{fig:wlm}
 \end{figure}
@@ -403,6 +410,8 @@ errors that are not tolerated, and as a result are only recoverable with restart
 stable enough for standard usage, and requires improvements in that regard.
 
 
+\clearpage
+
 \bibliographystyle{acm-reference-format}
 \bibliography{references}
 
@@ -421,7 +430,7 @@ While in theory there should be no issues with running this service on Windows, 
 Unix-based operating systems.
 
 \section{Configuration}
-\label{supp:configurations}
+\label{supp:configuration}
 The purpose of the configuration is to ensure a fixed set of defaults across nodes, and be easily readable by all CM-related
 processes. Defaults exist within a YAML file, which is read upon initializing any daemon, interface, or service in this work.
 The values are listed below.
