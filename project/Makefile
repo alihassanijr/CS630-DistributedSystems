@@ -12,7 +12,7 @@ clean:
 	rm -rf drive/*/**/cmlogs
 
 run:
-	docker compose up --scale computenode=4 --build
+	docker-compose up --scale computenode=4 --build
 
 stop:
 	docker compose down

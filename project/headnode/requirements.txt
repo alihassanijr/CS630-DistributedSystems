@@ -4,3 +4,4 @@ mongoengine
 pyyaml
 rich
 psutil
+virtualenv
