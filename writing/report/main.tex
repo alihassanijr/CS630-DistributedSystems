@@ -71,24 +71,45 @@
 
 \section{Introduction}
 
-\section{Background}
+High-performance computing (HPC) can be described as a design system where clusters of powerful computers are unified as a
+supercomputer for highly compute-intensive experiments.
+They continue to play a key role in science and technology, and without them, arguably many of the advances seen since the
+beginning of the 21st century would not have come close to being feasible.
+A perfect example is the surge in AI since the early 2010s, when, thanks to NVIDIA's general purpose GPUs and CUDA programming 
+model~\cite{kirk2007nvidia}, researchers started parallelizing the training of highly advanced neural networks of record sizes
+and on large sums of data. This surge continues today, and with it bringing about more demand for HPC systems and
+infrastructure to maximize parallelism and compute power~\cite{klenk2017relaxations}.
 
-Compute clusters are often comprised of a set of networked computers, each with certain computational capabilities and 
-resources, and they are set up in such a way that multiple users can request said resources for specific experiments or jobs.
-This is a distributed environment, where compute nodes collaborate to create a single unified system through which
-researchers, engineers, and scientists conduct computationally heavy experiments based on their requirements, and without having
-to consider per-node physical hardware requirements.
-An example of that is in machine learning research, where experiments, depending on their nature and size, require different
-levels of resources, particularly hardware accelerators, such as general-purpose graphical processing units (GPGPUs) and tensor
-processing units (TPUs).
-A standard practice in such scenarios is a cluster management software that is installed on all of the networked computers, or
-\textit{compute nodes}, and one or more computers manage, organize, and control the rest via network communications made through
-the cluster manager, which are referred to as \textit{head nodes}.
-Cluster management software relies on a workload management service or module, which provides an interface for users in
-order to allow them to request resources, and schedule their jobs accordingly.
-
+At their very core, compute clusters are simply comprised of a set of networked computers, 
+each with certain computational capabilities and resources.
+In many HPC scenarios, clusters are set up in such a way that clients can request resources for experiments.
+This distributed environment where compute nodes collaborate to create a single unified system through which researchers, 
+engineers, and scientists conduct their experimentation, are therefore crucial to the advancement of science and technology.
+These environments are comprised of many elements, including, but not limited to, their infrastructure, meaning the physical
+nodes, drives, network infrastructure, and the like, along with a software layer to construct, maintain, and manage the 
+distributed environment.
+The software layer, also referred to as \textbf{cluster manager}, handles most of the coordination, anywhere from providing 
+interfaces to systems engineers and administrators to set up and maintain the cluster, to setting up operating systems and 
+scheduling services for clients who would eventually utilize the resources.
+An example of that is the Bright Cluster Manager~\cite{bright}, which is commonly installed in NVIDIA clusters.
+Another role of the cluster manager is to handle workloads, for which it can rely on a separate workload manager.
 SLURM (Simple Linux Utility for Resource Management)~\cite{yoo2003slurm} is one such service, and is among the most widely 
 adopted among large-scale supercomputers and compute clusters.
+
+In this work, we introduce a lightweight python-based cluster and workload manager with minimal dependencies, that can be
+deployed on most computers capable of running containerized services such as Docker~\cite{merkel2014docker}, and utilizes the
+infrastructure that they provide.
+This service can be used to divide up resources existing on a single computer for the purposes of training, dividing and
+scheduling the use of resources among multiple clients, and can also be used to develop distributed programs.
+
+\section{Background}
+
+Cluster management software is typically installed on all of the networked computers, or \textit{compute nodes}, 
+and one or more computers manage, organize, and control the rest via network communications made through the cluster manager, 
+which are referred to as \textit{head nodes}.
+Cluster management software relies on a workload management service or module such as SLURM~\cite{yoo2003slurm}, which provides 
+an interface for users in order to allow them to request resources, and schedule their jobs accordingly.
+
 While the cluster management software keeps track of all nodes, their health status, and so on, it also passes their IP 
 addresses to the workload manager.
 The workload manager, in this case SLURM, runs daemons, which are processes that start automatically after 
