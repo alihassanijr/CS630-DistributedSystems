@@ -46,8 +46,8 @@ def time_diff_h(t1, t2):
     return (t1 - t2) / (60 * 60)
 
 
-def start_process(node_id, proc_index, uid, cwd, env, cmd):
-    log_dir = f"{cwd}/cmlogs/{node_id}"
+def start_process(node_id, job_id, proc_index, uid, cwd, env, cmd):
+    log_dir = f"{cwd}/cmlogs/{node_id}/{job_id}"
     os.makedirs(log_dir, exist_ok=True)
     out_path = f"{log_dir}/{proc_index}.out.txt"
     err_path = f"{log_dir}/{proc_index}.err.txt"
@@ -153,7 +153,7 @@ class Queue(CMObject):
             env["CM_NODE_RANK"] = str(node_rank)
             for i in range(n_procs):
                 env["CM_PROC_RANK"] = str(i)
-                pid = start_process(self.node_id, i, uid, cwd, env, cmd)
+                pid = start_process(node_id=self.node_id, job_id=job_id, proc_index=i, uid=uid, cwd=cwd, env=env, cmd=cmd)
                 self.pids[job_id].append(pid)
                 self.start_times[job_id].append(timestamp())
             self.flush()
