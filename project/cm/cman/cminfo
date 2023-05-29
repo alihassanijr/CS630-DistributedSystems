@@ -6,7 +6,6 @@ import logging
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.WARNING)
 _logger = logging.getLogger(__name__)
 
-from src.mw.socket import RequestSocket, ReplySocket
 from src.action import Action
 from src.response import Response
 from src.message import Message
