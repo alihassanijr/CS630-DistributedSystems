@@ -24,6 +24,10 @@
 \usepackage{adjustbox}
 \DeclareUnicodeCharacter{2529}{|}
 
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
 % Support for easy cross-referencing
 \usepackage[capitalize]{cleveref}
 \crefname{section}{Sec.}{Secs.}
@@ -43,7 +47,7 @@
 
 
 \begin{document}
-\title{A lightweight python based cluster and workload manager}
+\title{A lightweight cluster and workload manager}
 
 %\titlenote{}
 \subtitle{CS 630 Distributed Systems Project Report}
@@ -96,11 +100,17 @@ Another role of the cluster manager is to handle workloads, for which it can rel
 SLURM (Simple Linux Utility for Resource Management)~\cite{yoo2003slurm} is one such service, and is among the most widely 
 adopted among large-scale supercomputers and compute clusters.
 
-In this work, we introduce a lightweight python-based cluster and workload manager with minimal dependencies, that can be
+In this work, we introduce a lightweight cluster and workload manager with minimal dependencies, that can be
 deployed on most computers capable of running containerized services such as Docker~\cite{merkel2014docker}, and utilizes the
 infrastructure that they provide.
 This service can be used to divide up resources existing on a single computer for the purposes of training, dividing and
 scheduling the use of resources among multiple clients, and can also be used to develop distributed programs.
+This cluster manager is written using Python interfaces, making its source code easy to understand, modify, and extend, and is
+only approximately 3,000 lines of code, compared to large-scale workload managers such as SLURM~\cite{yoo2003slurm}, which are
+written in C and approximately 800,000 lines of code (99.625\% reduction in code).
+While this system has nowhere near the functionality that SLURM provides, it is designed to target enabling compute scheduling
+services on limited computational resources, even a single server, as well as ease of development of distributed programs geared
+towards research.
 
 \section{Background}
 
@@ -385,6 +395,117 @@ jobs (either running or pending). Takes no arguments. A sample output from this 
     \label{fig:cminfo}
 \end{figure}
 
+\subsection{Results and Discussions}
+
+\begin{table*}[h!]
+\centering
+    \resizebox{0.975\textwidth}{!}{
+    \begin{tabular}{||l c c c c c c c c||}
+        \hline
+        Workload                  & Lines           & Language  & Scalability   & Functionality & Modification   & Deployment as a & Deployment         & Learning curve \\
+                 manager          &       of code   &           &               &               &                & virtual service & in general         & for non-experts\\
+        \hline\hline
+        SLURM~\cite{yoo2003slurm} & $\approx$ 800 K & C         & High          & High          & Very difficult & Difficult       & Somewhat difficult & Long\\
+        \hline
+        Ours                      & $\approx$  3  K & Python    & Low           & Low           & Easy           & Very easy       & Medium             & Shallow\\
+        \hline
+    \end{tabular}
+}
+    \label{tab:slurm}
+    \caption{Comparison between our approach and SLURM in terms of scalability, functionality, ease of modification, ease of
+    deployment (both in a virtualized and physical environment), and learning curves. 
+    }
+\end{table*}
+
+\begin{table}[h!]
+\centering
+    \resizebox{0.475\textwidth}{!}{
+    \begin{tabular}{||l c c||}
+        \hline
+        Component & Lines   & Ease of \\
+                  & of code & modification \\
+        \hline\hline
+        New type of resource & $\approx$ 10   & Very easy \\
+        Scheduler            & $\approx$ 40   & Easy \\
+        Infrastructure       & $\approx$ 100  & Neutral \\
+        \hline
+    \end{tabular}
+    }
+    \label{tab:modification}
+    \caption{Ease of modification or extension of different components in CM. 
+    }
+\end{table}
+
+\begin{table*}[h!]
+\centering
+    \resizebox{0.975\textwidth}{!}{
+    \begin{tabular}{||l c c c c||}
+        \hline
+        Solution                            & Distributed & Scheduling    & Exclusivity       & Usage \\
+                                            & Jobs        &               & of resource usage &       \\
+        \hline\hline
+        Bash script                         & $\xmark$    & Self          & \xmark            & Easiest to set up and deploy\\
+        Multi-processing                    & $\cmark$    & Self          & \xmark            & Implementation at app. level required.\\
+        VMs / containers                    & $\xmark$    & Self          & \cmark            & Setup required.\\
+        VMs / containers + multi-processing & $\cmark$    & Self          & \cmark            & Setup required \& Implementation at app. level required.\\
+        Ours                                & $\cmark$    & Collaborative & \cmark            & Setup and training required.\\
+        \hline
+    \end{tabular}
+    }
+    \label{tab:sharedenv}
+    \caption{
+    Advantages of using our proposed system in a shared-resource environment, compared to alternative approaches.
+    }
+\end{table*}
+
+\paragraph{Comparison to SLURM.} 
+We note that the proposed approach is in no way in competition with SLURM, which has been the de facto standard for workload
+management in large compute clusters and supercomputers worldwide, and has bee an open-source project maintained for about 2
+decades.
+On the other hand, SLURM is very difficult to modify for non-experts, since it is written in 800K lines of code, 
+whereas the majority of those familiar with Python should be able to easily modify and extend our system.
+That said, SLURM is among the most used workload management tools for its massive scalability, and continuous open-source
+development over 2 decades, and provides a great range of functionalities, which also result in and extended learning curve
+amongst non-experts and novice researchers. On the other hand, our system is more suitable for learning, due to the fact
+that it only implements the necessary elements of a workload manager. As for deployment, our system is designed to be
+deployed in a virtual environment, and can be also deployed to physical nodes as well, whereas Docker may not be as easily
+deployable to either, specifically as a completely containerized service.
+We present a summary of this comparison in~\cref{tab:slurm}.
+
+\paragraph{Ease of modification.}
+Adding a new type of resource (i.e. GPU, other hardware accelerator, type of drive, and the like) is very easy, and can be done 
+through defining a new \verb|Resource| type and adding command line arguments to interfaces, which in some cases can be done in 
+less than 10 lines of code. 
+Changing the scheduler or its policy is relatively easy as well, as the current greedy scheduling procedure is less than 40
+lines of code.
+Modifying the infrastructure from Docker can be easy depending on whether or not the target infrastructure maintains certain
+assumptions. As long as the software is correctly deployed correctly and started on each node, after setting up a head node,
+the system should function normally, as long as the configuration is changed accordingly 
+(specifically end-to-end timeout values.)
+An overview of this comparison is presented in~\cref{tab:modification}.
+
+\paragraph{Benefits in shared-resource environments.}
+One of the applications of our proposed method is in shared-resource environments, typically single node environments, where
+many clients / users are in need of computational resources for different tasks, which quickly leads to three potential issues:
+\begin{enumerate}
+    \item Waste of resources: When jobs finish and users are offline, the system remains idle.
+    \item Distributed processes: Certain jobs, such as IO-bound problems, can benefit from a distributed setup, with different
+        sub-processes working on subsets of the problem.
+    \item Exclusive access to resources: the operating system by default does not prevent multiple users from using the same
+        shared resource, which can lead to overloading the system, biasing performance analyses, and of course increased wall
+        time for those whose jobs preceded new ones.
+\end{enumerate}
+To minimize waste of resources, a simple bash script is enough to set up sequential jobs that utilize a specific amount of
+the available resources, but it is typically not possible to exclusively reserve resources, and even if parallel jobs are
+set up in the script, there's no distribution in the sense that processes are completely independent and do not communicate.
+Multi-processing requires implementation at the application level, but would allow dependence and communication between
+subprocesses. Using VMs or containers may allow for exclusively reserving resources for different users, but would lead to
+potential wasting of resources if some users do not fully utilize their allocated resources, and some are in need of more
+resources.
+With our system, scheduling would be done collaboratively, and therefore waste of resources would be minimized, as the
+scheduler is designed to allow jobs to run as long as resources are available.
+We summarize this comparison in \cref{tab:sharedenv}.
+
 \section{Summary}
 In summary, in this work we introduce a minimal cluster and workload management system comprised of software components
 primarily written in Python, and the containerized infrastructure provided by Docker.
@@ -395,6 +516,10 @@ protocols and scheduling services. Daemons on compute nodes attempt to contact t
 coordinator. 
 Users primarily use interfaces that are deployed to the head node, which convert user requests to messages that flow through the
 entire system by first reaching the head daemon, and then possibly inciting messages to compute nodes and back.
+
+This system is written using Python interfaces, and in approximately 3,000 lines of code, which is 99.625\% of that of SLURM,
+making it easily modifiable and extendable. Our system is geared towards enabling job scheduling on individual physical nodes
+with minimal effort, as well as ease of development of distributed applications.
 
 \section{Conclusion}
 In this work, we introduced a minimal cluster and workload management system, written primarily in Python with minimal
@@ -410,7 +535,7 @@ errors that are not tolerated, and as a result are only recoverable with restart
 stable enough for standard usage, and requires improvements in that regard.
 
 
-\clearpage
+%\clearpage
 
 \bibliographystyle{acm-reference-format}
 \bibliography{references}
@@ -423,7 +548,7 @@ stable enough for standard usage, and requires improvements in that regard.
 \label{supp:sourcecode}
 The entire implementation is available in the following GitHub repository, under the \verb|project/| directory.
 
-\url{https://github.com/alihassanijr/CS630-DistributedSystems}.
+\noindent \url{https://github.com/alihassanijr/CS630-DistributedSystems}.
 
 The only requirement for starting the service is Docker, docker-compose, GNU make.
 While in theory there should be no issues with running this service on Windows, it should be noted that it was only tested on 
