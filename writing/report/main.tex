@@ -407,7 +407,7 @@ jobs (either running or pending). Takes no arguments. A sample output from this 
         \hline\hline
         SLURM~\cite{yoo2003slurm} & $\approx$ 800 K & C         & High          & High          & Very difficult & Difficult       & Somewhat difficult & Long\\
         \hline
-        Ours                      & $\approx$  3  K & Python    & Low           & Low           & Easy           & Very easy       & Medium             & Shallow\\
+        Ours                      & $\approx$ \ \ \ 3 K & Python    & Low           & Low           & Easy           & Very easy       & Medium             & Shallow\\
         \hline
     \end{tabular}
 }
@@ -444,11 +444,11 @@ jobs (either running or pending). Takes no arguments. A sample output from this 
         Solution                            & Distributed & Scheduling    & Exclusivity       & Usage \\
                                             & Jobs        &               & of resource usage &       \\
         \hline\hline
-        Bash script                         & $\xmark$    & Self          & \xmark            & Easiest to set up and deploy\\
-        Multi-processing                    & $\cmark$    & Self          & \xmark            & Implementation at app. level required.\\
-        VMs / containers                    & $\xmark$    & Self          & \cmark            & Setup required.\\
-        VMs / containers + multi-processing & $\cmark$    & Self          & \cmark            & Setup required \& Implementation at app. level required.\\
-        Ours                                & $\cmark$    & Collaborative & \cmark            & Setup and training required.\\
+        Bash script                         & \xmark    & Self          & \xmark            & Easiest to set up and deploy\\
+        Multi-processing                    & \cmark    & Self          & \xmark            & Implementation at app. level required.\\
+        VMs / containers                    & \xmark    & Self          & \cmark            & Setup required.\\
+        VMs / containers + multi-processing & \cmark    & Self          & \cmark            & Setup required \& Implementation at app. level required.\\
+        Ours                                & \cmark    & Collaborative & \cmark            & Setup and training required.\\
         \hline
     \end{tabular}
     }

@@ -19,7 +19,7 @@ comparable, but setting that aside and handling order through commit trees, the 
 consistent reads can be done based on a specific version, and can be done lock-free.)
 
 ### Strengths and Weaknesses
-One of the most significant contributions in this paper are TrueTime and the resulting clock consistency with minimal wait time.
+One of the most significant contributions in this paper is TrueTime and the resulting clock consistency with minimal wait time.
 Ensuring clock consistency allows versioned data through timestamps, leading to many benefits such as the ease of inferring 
 causality, and therefore achieving consistency and external consistency. It also allows for lock-free reads, which is
 especially important in large-scale databases with more frequent reads than writes (content providers).
