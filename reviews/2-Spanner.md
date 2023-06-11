@@ -53,4 +53,4 @@ provides and data centers started working on the infrastructure for this, so tha
 version of TrueTime, or possibly an open source version, they would be able to provide the infrastructure for it as well.
 
 ## Author
-[Ram Durairajan](https://ix.cs.uoregon.edu/~ram/)
+[Ali Hassani](https://alihassanijr.com)

@@ -80,4 +80,4 @@ A common framework providing a serving interface for multiple ML frameworks is a
 that.)
 
 ## Author
-[Ram Durairajan](https://ix.cs.uoregon.edu/~ram/)
+[Ali Hassani](https://alihassanijr.com)

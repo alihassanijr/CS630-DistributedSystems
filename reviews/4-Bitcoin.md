@@ -50,4 +50,4 @@ If widely adopted around the world, it is not unlikely that these nodes will acc
 consumption, and therefore environmental issues.
 
 ## Author
-[Ram Durairajan](https://ix.cs.uoregon.edu/~ram/)
+[Ali Hassani](https://alihassanijr.com)
