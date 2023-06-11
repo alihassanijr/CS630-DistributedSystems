@@ -4,6 +4,8 @@ Took this class Spring 2023.
 ## Overview
 `project/` will hold the source code for the project.
 
+`reviews/` will hold all paper reviews.
+
 `writing/` will hold all writing assignments (project proposal and project report.)
 
 `resources/` will hold reading material (papers, books, slides). (Probably won't commit most of these).
